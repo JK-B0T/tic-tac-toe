@@ -22,11 +22,15 @@ function main() {
             return symbol;
         }
 
+        const getName = () => {
+            return name;
+        }
+
         const increaseScore = () => {
             score++;
         }
 
-        return {name, getSymbol, increaseScore};
+        return {getName, getSymbol, increaseScore};
     }
 
     const boardGrid = (function (rows, columns) {
@@ -39,6 +43,18 @@ function main() {
             }
         }
 
+        const checkPosition = (x, y) => {
+            if ((x < columns && x >= 0) && (y < rows && y >= 0)) {
+                if (grid[x][y].getSymbol() === "") {
+                    return true;
+                } else {return false;}
+            } else {return false;}
+        }
+
+        const changeCellSymbol = (x, y, newSymbol) => {
+                grid[x][y].setSymbol(newSymbol);
+        }
+
         const showGrid = () => {
             let gridVisual = ""
             for (let i = 0; i < columns; i++) {
@@ -47,52 +63,63 @@ function main() {
                 }
                 gridVisual += `\n`;
             }
-            return gridVisual;
+            console.log(gridVisual);
         }
 
-        return {grid, showGrid};
+        return {showGrid, checkPosition, changeCellSymbol};
     })(3, 3);
 
     const gameController = (function (board) {
-        let player = {};
+        let players = [];
+        let turn = 0;
 
-        const checkPosition = (x, y) => {
-            board.grid[x][y].getSymbol() == "" ? true : false;
+        const setPlayers = (newPlayers) => {
+            players = newPlayers;
         }
 
-        const setPlayer = (newPlayer) => {
-            player = newPlayer;
+        const getTurn = () => {
+            return turn;
+        }
+
+        const setTurn = (newTurn) => {
+            turn = newTurn;
         }
 
         const setMove = (x, y) => {
-            console.log(x, y)
-            if (checkPosition(x, y)) {
-                board.grid[x][y].setSymbol(player.getSymbol());
-                console.log(x, y, board.grid[x][y].getSymbol(), player.getSymbol(), player)
+            //console.log(x, y, board.checkPosition(x, y));
+            if (board.checkPosition(x, y)) {
+                board.changeCellSymbol(x, y, players[turn].getSymbol());
+                return true;
             } else {
                 return false;
-            }1
+            }
         }
 
-        return {setMove, setPlayer};
+        return {setMove, setPlayers, setTurn, getTurn};
     })(boardGrid);
 
     const player1 = createPlayer("Popo", "$-$");
-    const player2 = createPlayer("Johnson" , "UwU");
+    const player2 = createPlayer("Johnson", "UwU");
 
     const gameManager = (function (board, controller, players) {
-        controller.setPlayer(players.player1);
-        console.log(players.player1);
-        for (let i = 0; i < 9; i++) {1
+        controller.setPlayers(players);
+
+        for (let turnsRemaining = 9; turnsRemaining > 0;) {
             let x = +prompt("Column");
             let y = +prompt("Row");
-            controller.setMove(x, y);
-            board.showGrid();
+            if(controller.setMove(x, y)) {
+                if (controller.getTurn() === 0) {
+                    controller.setTurn(1);
+                } else {
+                    controller.setTurn(0);
+                }
+                turnsRemaining--;
+                board.showGrid();
+            }
         }
 
         return {board, controller};
-    })(boardGrid, gameController, {player1, player2});
+    })(boardGrid, gameController, [player1, player2]);
 
-    console.log(gameManager.board.showGrid());
     console.log("main ends");
 }
