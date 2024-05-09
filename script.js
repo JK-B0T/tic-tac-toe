@@ -16,7 +16,7 @@ function main() {
     }
 
     function createPlayer (name = "anon", symbol = "-") {
-        score = 0;
+        let score = 0;
 
         const getSymbol = () => {
             return symbol;
@@ -26,11 +26,15 @@ function main() {
             return name;
         }
 
+        const getScore = () => {
+            return score;
+        }
+
         const increaseScore = () => {
             score++;
         }
 
-        return {getName, getSymbol, increaseScore};
+        return {getName, getSymbol, increaseScore, getScore};
     }
 
     const boardGrid = (function (rows, columns) {
@@ -133,6 +137,9 @@ function main() {
         const setPlayers = (newPlayers) => {
             players = newPlayers;
         }
+        const setBoard = (newBoard) => {
+            board = newBoard;
+        }
 
         const getTurn = () => {
             return turn;
@@ -151,37 +158,49 @@ function main() {
             }
         }
 
-        return {setMove, setPlayers, setTurn, getTurn};
+        return {setMove, setPlayers, setTurn, getTurn, setBoard};
     })(boardGrid);
 
-    const player1 = createPlayer("Popo", "$-$");
-    const player2 = createPlayer("Johnson", "UwU");
+    const gameManager = (function (board, controller, pointsToWin) {
+        const player1 = createPlayer("Popo", "x");
+        const player2 = createPlayer("Johnson", "o");
+        const players = [player1, player2];
 
-    const gameManager = (function (board, controller, players) {
-        controller.setPlayers(players);
+        const startGame = () => {
+            controller.setPlayers(players);
+            controller.setBoard(board);
+            if ((players[0].getScore() < pointsToWin) && (players[1].getScore() < pointsToWin)) {
+                resolveGame();
+            }
+        }
 
-        for (let turnsRemaining = 9; turnsRemaining > 0;) {
-            let x = +prompt("Row");
-            let y = +prompt("Column");
-            if(controller.setMove(x, y)) {
-                turnsRemaining--;
-                board.showGrid();
-
-                if (board.checkVictory(x, y, players[controller.getTurn()].getSymbol())) {
-                    console.log(players[controller.getTurn()].getName() + " WINS!");
-                    break;
-                }
-
-                if (controller.getTurn() === 0) {
-                    controller.setTurn(1);
-                } else {
-                    controller.setTurn(0);
+        const resolveGame = () => {
+            for (let turnsRemaining = 9; turnsRemaining > 0;) {
+                let x = +prompt("Row");
+                let y = +prompt("Column");
+                if(controller.setMove(x, y)) {
+                    turnsRemaining--;
+                    board.showGrid();
+                    if (board.checkVictory(x, y, players[controller.getTurn()].getSymbol())) {
+                        console.log(players[controller.getTurn()].getName() + " WINS!");
+                        break;
+                    }
+                    changeTurn();
                 }
             }
         }
 
-        return {board, controller};
-    })(boardGrid, gameController, [player1, player2]);
+        const changeTurn = () => {
+            if (controller.getTurn() === 0) {
+                controller.setTurn(1);
+            } else {
+                controller.setTurn(0);
+            }
+        }
 
+        return {startGame};
+    })(boardGrid, gameController, 3);
+
+    gameManager.startGame();
     console.log("main ends");
 }
