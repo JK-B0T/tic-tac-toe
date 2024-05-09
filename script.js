@@ -51,6 +51,63 @@ function main() {
             } else {return false;}
         }
 
+        const checkVictory = (x, y, symbol) => {
+            let isWin = true;
+            for (let iy = 0; iy < rows; iy++) {
+                if (!(grid[x][iy].getSymbol() === symbol)) {
+                    isWin = false;
+                    break;
+                }
+            }
+            if (isWin === true) {
+                return true;
+            } else {
+                isWin = true;
+            }
+
+            for (let ix = 0; ix < columns; ix++) {
+                if (!(grid[ix][y].getSymbol() === symbol)) {
+                    isWin = false;
+                    break;
+                }
+            }
+            if (isWin === true) {
+                return true;
+            } else {
+                isWin = true;
+            }
+
+            let iy = 0;
+            for (let ix = 0; ix < columns; ix++) {
+                if (!(grid[ix][iy].getSymbol() === symbol)) {
+                    isWin = false;
+                    break;
+                }
+                iy++;
+            }
+            if (isWin === true) {
+                return true;
+            } else {
+                isWin = true;
+            }
+
+            iy = rows-1;
+            for (let ix = 0; ix < columns; ix++) {
+                if (!(grid[ix][iy].getSymbol() === symbol)) {
+                    isWin = false;
+                    break;
+                }
+                iy--;
+            }
+            if (isWin === true) {
+                return true;
+            } else {
+                isWin = true;
+            }
+
+            return false;
+        }
+
         const changeCellSymbol = (x, y, newSymbol) => {
                 grid[x][y].setSymbol(newSymbol);
         }
@@ -66,7 +123,7 @@ function main() {
             console.log(gridVisual);
         }
 
-        return {showGrid, checkPosition, changeCellSymbol};
+        return {showGrid, checkPosition, changeCellSymbol, checkVictory};
     })(3, 3);
 
     const gameController = (function (board) {
@@ -86,7 +143,6 @@ function main() {
         }
 
         const setMove = (x, y) => {
-            //console.log(x, y, board.checkPosition(x, y));
             if (board.checkPosition(x, y)) {
                 board.changeCellSymbol(x, y, players[turn].getSymbol());
                 return true;
@@ -105,16 +161,22 @@ function main() {
         controller.setPlayers(players);
 
         for (let turnsRemaining = 9; turnsRemaining > 0;) {
-            let x = +prompt("Column");
-            let y = +prompt("Row");
+            let x = +prompt("Row");
+            let y = +prompt("Column");
             if(controller.setMove(x, y)) {
+                turnsRemaining--;
+                board.showGrid();
+
+                if (board.checkVictory(x, y, players[controller.getTurn()].getSymbol())) {
+                    console.log(players[controller.getTurn()].getName() + " WINS!");
+                    break;
+                }
+
                 if (controller.getTurn() === 0) {
                     controller.setTurn(1);
                 } else {
                     controller.setTurn(0);
                 }
-                turnsRemaining--;
-                board.showGrid();
             }
         }
 
