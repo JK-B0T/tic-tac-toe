@@ -2,7 +2,8 @@ document.addEventListener("DOMContentLoaded", main, false);
 
 function main() {
 
-    function createCell (symbol = "") {
+    function createCell (symbol = "", id) {
+
 
         const setSymbol = (newsymbol) => {
             symbol = newsymbol;
@@ -43,7 +44,7 @@ function main() {
         for (let i = 0; i < columns; i++) {
             grid[i] = [];
             for (let j = 0; j < rows; j++) {
-                grid[i][j] = createCell("");
+                grid[i][j] = createCell("", `${i}${j}`);
             }
         }
 
@@ -127,7 +128,15 @@ function main() {
             console.log(gridVisual);
         }
 
-        return {showGrid, checkPosition, changeCellSymbol, checkVictory};
+        const reset = () => {
+            for (let i = 0; i < columns; i++) {
+                for (let j = 0; j < rows; j++) {
+                    grid[i][j].setSymbol("");
+                }
+            }
+        }
+
+        return {showGrid, checkPosition, changeCellSymbol, checkVictory, reset};
     })(3, 3);
 
     const gameController = (function (board) {
@@ -161,20 +170,75 @@ function main() {
         return {setMove, setPlayers, setTurn, getTurn, setBoard};
     })(boardGrid);
 
-    const gameManager = (function (board, controller, pointsToWin) {
-        const player1 = createPlayer("Popo", "x");
-        const player2 = createPlayer("Johnson", "o");
-        const players = [player1, player2];
+    const gameManager = (function (board, controller, gamesNum) {
+        let players = [];
+        let turnNum = 1;
+
+        const definePlayers = () => {
+            const player1 = createPlayer(
+                prompt("Player 1 name"), 
+                prompt("Player 1 symbol")
+            );
+            const player2 = createPlayer(
+                prompt("Player 2 name"), 
+                prompt("Player 2 symbol")
+            );
+            return players = [player1, player2];
+        }
 
         const startGame = () => {
-            controller.setPlayers(players);
+            controller.setPlayers(definePlayers());
             controller.setBoard(board);
-            if ((players[0].getScore() < pointsToWin) && (players[1].getScore() < pointsToWin)) {
+            
+            const domCells = Array.from(document.querySelectorAll("section button"));
+            domCells.map((cell) => {cell.addEventListener("click", test, false)})
+
+            /*
+            while (gamesNum >= 0) {
                 resolveGame();
+                gamesNum--;
+            } 
+            endGame();
+            */
+        }
+
+        const endGame = () => {
+            if (players[0].getScore() > players[1].getScore()) {
+                console.log(`${players[0].getName()} WINS!`)
+            } else if (players[0].getScore() < players[1].getScore()) {
+                console.log(`${players[1].getName()} WINS!`)
+            } else {
+                console.log(`TABLES!`)
+            }
+            startGame();
+        }
+
+        const test = (event) => {
+            if (gamesNum <= 0) {
+                endGame();
+            } else {
+                if (turnNum <= 9) {
+                    const x = event.target.id[0];
+                    const y = event.target.id[1];
+                    if(controller.setMove(x, y)) {
+                        turnNum--;
+                        board.showGrid();
+                        if (board.checkVictory(x, y, players[controller.getTurn()].getSymbol())) {
+                            gamesNum--;
+                            board.reset();
+                            players[controller.getTurn()].increaseScore();
+                            console.log(players[controller.getTurn()].getName() + " WINS!");
+                        }
+                        changeTurn();
+                    }
+                } else {
+                    gamesNum--;
+                    board.reset();
+                }
             }
         }
 
-        const resolveGame = () => {
+        /*const resolveGame = () => {
             for (let turnsRemaining = 9; turnsRemaining > 0;) {
                 let x = +prompt("Row");
                 let y = +prompt("Column");
@@ -188,7 +252,7 @@ function main() {
                     changeTurn();
                 }
             }
-        }
+        }*/
 
         const changeTurn = () => {
             if (controller.getTurn() === 0) {
@@ -201,6 +265,6 @@ function main() {
         return {startGame};
     })(boardGrid, gameController, 3);
 
-    //gameManager.startGame();
+    gameManager.startGame();
     console.log("main ends");
 }
