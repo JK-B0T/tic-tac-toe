@@ -2,7 +2,69 @@ document.addEventListener("DOMContentLoaded", main, false);
 
 function main() {
 
+    const board = ((rows, columns) => {
+        let grid = [];
 
+        const resizeGrid = (rows, columns) => {
+            this.rows = rows;
+            this.columns = columns;
+        }
+
+        const createGrid = () => {
+            for (let x = 0; x < rows; x++) {
+                grid[x] = [];
+                for (let y = 0; y < columns; y++) {
+                    grid[x][y] = {};
+                }
+            }
+        }
+
+        const getGrid = () => {
+            return grid;
+        }
+
+        const createGridProperty = (property) => {
+            for (let x = 0; x < rows; x++) {
+                for (let y = 0; y < columns; y++) {
+                    grid[x][y][property] = null;
+                }
+            }
+        }
+
+        const getCell = (x, y) => {
+            return grid[x][y];
+        }
+
+        const getCellProperty = (x, y, property) => {
+            return grid[x][y].property;
+        }
+
+        const fillCellProperty = (pos, property, value) => {
+            grid[pos[0]][pos[1]][property] = value;
+        }
+
+        createGrid(rows, columns);
+        createGridProperty("entity");
+        return {getGrid, createGridProperty, getCellProperty, fillCellProperty};
+    })(3, 3);
+
+    const consoleRender = (() => {
+
+        const showGrid = (grid, property) => {
+            let visualGrid = "";
+            for (let x = 0; x < rows; x++) {
+                x !== 0 ? visualGrid += "\n" : false;
+                for (let y = 0; y < columns; y++) {
+                    visualGrid += grid.getCell(x, y, property);
+                }
+            }
+            console.log(visualBoard);
+        }
+
+        return {showGrid};
+    })();
+
+    consoleRender.showGrid(board.getGrid(), "entity");
     /* 
     function createCell (symbol = "", id) {
 
