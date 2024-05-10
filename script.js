@@ -201,6 +201,6 @@ function main() {
         return {startGame};
     })(boardGrid, gameController, 3);
 
-    gameManager.startGame();
+    //gameManager.startGame();
     console.log("main ends");
 }
