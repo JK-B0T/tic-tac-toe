@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", main, false);
 
 function main() {
 
+
+    /* 
     function createCell (symbol = "", id) {
 
 
@@ -199,7 +201,7 @@ function main() {
                 gamesNum--;
             } 
             endGame();
-            */
+
         }
 
         const endGame = () => {
@@ -252,7 +254,7 @@ function main() {
                     changeTurn();
                 }
             }
-        }*/
+        }
 
         const changeTurn = () => {
             if (controller.getTurn() === 0) {
@@ -267,4 +269,5 @@ function main() {
 
     gameManager.startGame();
     console.log("main ends");
+    */
 }
