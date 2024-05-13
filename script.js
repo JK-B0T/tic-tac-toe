@@ -2,6 +2,46 @@ document.addEventListener("DOMContentLoaded", main, false);
 
 function main() {
 
+    function createEntity (id, type, gridPropertyType = null, pos = null) {
+
+        const changePos = (x, y, property) => {
+            if (pos !== null) {
+                board.emptyCellProperty(pos, property);
+            }
+            pos = [x, y];
+            board.fillCellProperty(pos, gridPropertyType || property, type + id);
+        }
+
+        const getName = () => {
+            return gridPropertyType + id;
+        }
+        return {changePos, getName};
+    }
+
+    function createFaction (name) {
+        let pos = null;
+        let unitList = {};
+
+        const getName = () => {
+            return name; 
+        }
+
+        const addUnitType = (type) => {
+            unitList[type] = []; 
+        }
+
+        const addUnits = (type, gridProperty, number = 1) => {
+            for (let i = 0; i < number; i++) {
+                unitList[type].push(createEntity(unitList[type].length+1, type, gridProperty)); 
+            }
+        }
+
+        const selectUnit = (type, number = 1) => {
+            return unitList[type][number-1];
+        }
+        return {getName, addUnitType, addUnits, selectUnit};
+    }
+
     const board = ((rows, columns) => {
         let grid = [];
 
@@ -23,7 +63,7 @@ function main() {
             return grid;
         }
 
-        const createGridProperty = (property) => {
+        const addGridProperty = (property) => {
             for (let x = 0; x < rows; x++) {
                 for (let y = 0; y < columns; y++) {
                     grid[x][y][property] = null;
@@ -48,12 +88,8 @@ function main() {
         }
 
         createGrid(rows, columns);
-        createGridProperty("entity");
-        fillCellProperty([0,0], "entity", "Dog");
-        fillCellProperty([1,1], "entity", "Dog");
-        fillCellProperty([1,2], "entity", "Cat");
-        fillCellProperty([2,2], "entity", "Dog");
-        return {getGrid, createGridProperty, getCellProperty, fillCellProperty, emptyCellProperty};
+        addGridProperty("entity");
+        return {getGrid, addGridProperty, getCellProperty, fillCellProperty, emptyCellProperty};
     })(3, 3);
 
     const consoleRender = (() => {
@@ -63,6 +99,9 @@ function main() {
             for (let x = 0; x < board.getGrid().length; x++) {
                 x !== 0 ? visualGrid += "\n" : false;
                 for (let y = 0; y < board.getGrid()[0].length; y++) {
+                    if (board.getCellProperty(x, y, property) instanceof createEntity) {
+                        visualGrid += `[${board.getCellProperty(x, y, property).getName()}]`;
+                    }
                     visualGrid += `[${board.getCellProperty(x, y, property)}]`;
                 }
             }
@@ -71,6 +110,24 @@ function main() {
 
         return {showGrid};
     })();
+
+    playerX = createFaction("PlayerX");
+    playerO = createFaction("PlayerO");
+
+    playerX.addUnitType("X");
+    playerO.addUnitType("O");
+
+    playerX.addUnits("X", "entity", 5);
+    playerO.addUnits("O", "entity", 5);
+
+    playerX.selectUnit("X", 1).changePos(0,0, "entity");
+    playerX.selectUnit("X", 2).changePos(1,0, "entity");
+    playerX.selectUnit("X", 3).changePos(2,1, "entity");
+    playerX.selectUnit("X", 4).changePos(2,2, "entity");
+    playerO.selectUnit("O", 1).changePos(0,2, "entity");
+    playerO.selectUnit("O", 2).changePos(1,2, "entity");
+    playerO.selectUnit("O", 3).changePos(2,0, "entity");
+    playerO.selectUnit("O", 3).changePos(1,1, "entity");
 
     consoleRender.showGrid(board, "entity");
     /* 
