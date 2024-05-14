@@ -136,6 +136,10 @@ function main() {
     })();
 
     const gameController = (() => {
+        /*
+        What players are controlling the game?
+        Who is the active player? 
+        */
         let turnPosesion = null;
 
         const registerInput = () => {
