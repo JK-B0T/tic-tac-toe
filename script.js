@@ -118,9 +118,9 @@ function main() {
     const playersManager = (() => {
         let players = {}
 
-        const createPlayer = () => {
-            const name = prompt("Player name");
-            const faction = prompt("Player faction");
+        const createPlayer = (name, faction) => {
+            //const name = prompt("Player name");
+            //const faction = prompt("Player faction");
             players[name] = {faction: faction, score: 0};
         }
 
@@ -135,41 +135,149 @@ function main() {
         return {createPlayer, getPlayerScore, getPlayerFaction};
     })();
 
-    const ticTacToeManager = (() => {
-        const resolveTurn = () => {
-            console.log("Turn made");
+    const gameController = (() => {
+        let turnPosesion = null;
+
+        const registerInput = () => {
+            gameManager.startTurn();
         }
-        return {resolveTurn};
+        
+        const domCells = Array.from(document.querySelectorAll("section button"));
+        domCells.map((cell) => {cell.addEventListener("click", registerInput, false)});
+
+        return {};
     })();
 
-    const gameManager = (() => {
-        let gameInProgress = false;
-        const DEFAULT_TURNS_PER_PLAYER = 1;
+    const ticTacToeManager = (() => {
+        let turnsLeft = 9;
 
-        const startGame = (gamesNum, turnsPerPlayer = DEFAULT_TURNS_PER_PLAYER) => {
-            gameInProgress = true;
-            let gamesLeft = gamesNum;
-            if (gamesLeft !== 0) {
+        const startTicTacToeGame = (player1, player2) => {
+            player1Faction = createFaction(player1.getFaction());
+            player2Faction = createFaction(player2.getFaction());
+        
+            player1Faction.addUnitType(player1.getFaction());
+            player2Faction.addUnitType(player2.getFaction());
+        
+            player1Faction.addUnits(player1.getFaction(), "entity", 5);
+            player2Faction.addUnits(player2.getFaction(), "entity", 5);
+        }
+
+        const victoryCheck = () => {
+            /*
+            let isWin = true;
+            for (let iy = 0; iy < rows; iy++) {
+                if (!(grid[x][iy].getSymbol() === symbol)) {
+                    isWin = false;
+                    break;
+                }
+            }
+            if (isWin === true) {
+                return true;
+            } else {
+                isWin = true;
+            }
+
+            for (let ix = 0; ix < columns; ix++) {
+                if (!(grid[ix][y].getSymbol() === symbol)) {
+                    isWin = false;
+                    break;
+                }
+            }
+            if (isWin === true) {
+                return true;
+            } else {
+                isWin = true;
+            }
+
+            let iy = 0;
+            for (let ix = 0; ix < columns; ix++) {
+                if (!(grid[ix][iy].getSymbol() === symbol)) {
+                    isWin = false;
+                    break;
+                }
+                iy++;
+            }
+            if (isWin === true) {
+                return true;
+            } else {
+                isWin = true;
+            }
+
+            iy = rows-1;
+            for (let ix = 0; ix < columns; ix++) {
+                if (!(grid[ix][iy].getSymbol() === symbol)) {
+                    isWin = false;
+                    break;
+                }
+                iy--;
+            }
+            if (isWin === true) {
+                return true;
+            } else {
+                isWin = true;
+            }
+
+            return false;
+            */
+        }
+
+        const resolveTurn = () => {
+            console.log("Turn made");
+            if (turnsLeft !== 0 && victoryCheck()) {
 
             }
         }
 
-        const test = () => {
+        const endTurn = () => {
+            console.log("Turn made");
+            if (turnsLeft !== 0) {
+                
+            }
+        }
+        return {startTicTacToeGame, resolveTurn};
+    })();
+
+    const gameManager = ((game, gameResolveTurn) => {
+        const DEFAULT_TURNS_PER_PLAYER = 1;
+        let gameInProgress = false;
+        let gamesLeft = 0;
+
+        const startGame = (gamesNum, turnsPerPlayer = DEFAULT_TURNS_PER_PLAYER) => {
+            gameInProgress = true;
+            gamesLeft = gamesNum;
+            game();
+        }
+
+        const startTurn = () => {
             if (gameInProgress) {
                 if (gamesLeft !== 0) {
-                    ticTacToeManager.resolveTurn();
+                    gameResolveTurn();
+                    gamesLeft--;
+                } else {
+                    endGame();
                 }
             } else {
                 console.log("No game in progress");
             }
         }
 
-        const domCells = Array.from(document.querySelectorAll("section button"));
-        domCells.map((cell) => {cell.addEventListener("click", test, false)});
+        const endGame = () => {
+            if (gameInProgress) {
 
-        return {startGame};
-    })();
+            } else {
+                console.log("No game in progress");
+            }
+        }
 
+        return {startGame, startTurn};
+    })(ticTacToeManager.startTicTacToeGame(playersManager.JuJas, playersManager.PlinPlon), ticTacToeManager.resolveTurn());
+
+    playersManager.createPlayer("JuJas", "X");
+    playersManager.createPlayer("PlinPlon", "O");
+
+    gameManager.startGame(3);
+
+    /*
     playerX = createFaction("PlayerX");
     playerO = createFaction("PlayerO");
 
