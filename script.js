@@ -15,7 +15,11 @@ function main() {
         const getName = () => {
             return gridPropertyType + id;
         }
-        return {changePos, getName};
+
+        const getType = () => {
+            return type;
+        }
+        return {changePos, getName, getType};
     }
 
     function createFaction (name) {
@@ -109,6 +113,61 @@ function main() {
         }
 
         return {showGrid};
+    })();
+
+    const playersManager = (() => {
+        let players = {}
+
+        const createPlayer = () => {
+            const name = prompt("Player name");
+            const faction = prompt("Player faction");
+            players[name] = {faction: faction, score: 0};
+        }
+
+        const getPlayerFaction = (name) => {
+            return players[name].faction;
+        }
+
+        const getPlayerScore = (name) => {
+            return players[name].score;
+        }
+
+        return {createPlayer, getPlayerScore, getPlayerFaction};
+    })();
+
+    const ticTacToeManager = (() => {
+        const resolveTurn = () => {
+            console.log("Turn made");
+        }
+        return {resolveTurn};
+    })();
+
+    const gameManager = (() => {
+        let gameInProgress = false;
+        const DEFAULT_TURNS_PER_PLAYER = 1;
+
+        const startGame = (gamesNum, turnsPerPlayer = DEFAULT_TURNS_PER_PLAYER) => {
+            gameInProgress = true;
+            let gamesLeft = gamesNum;
+            if (gamesLeft !== 0) {
+
+            }
+        }
+
+        const test = () => {
+            if (gameInProgress) {
+                if (gamesLeft !== 0) {
+                    ticTacToeManager.resolveTurn();
+                }
+            } else {
+                console.log("No game in progress");
+            }
+        }
+
+        const domCells = Array.from(document.querySelectorAll("section button"));
+        domCells.map((cell) => {cell.addEventListener("click", test, false)});
+
+        return {startGame};
     })();
 
     playerX = createFaction("PlayerX");
