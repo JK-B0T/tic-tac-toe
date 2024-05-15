@@ -116,36 +116,61 @@ function main() {
     })();
 
     const playersManager = (() => {
-        let players = {}
+        let players = []
 
         const createPlayer = (name, faction) => {
-            //const name = prompt("Player name");
-            //const faction = prompt("Player faction");
-            players[name] = {faction: faction, score: 0};
+            if(getPlayerByName(name)[0] == undefined) {
+                players.push({name: name, faction: faction, score: 0});
+            }
         }
 
-        const getPlayerFaction = (name) => {
-            return players[name].faction;
+        const getPlayerByName = (name) => {
+            return players.filter((player) => {
+                return player.name == name;
+            });
         }
 
-        const getPlayerScore = (name) => {
-            return players[name].score;
+        const getPlayerById = (id) => {
+            return players[id];
         }
 
-        return {createPlayer, getPlayerScore, getPlayerFaction};
+        const increaseScore = (id) => {
+            return players[id].score += 1;
+        }
+
+        const resetScore = (id) => {
+            return players[id].score = 0;
+        }
+
+        return {createPlayer, getPlayerByName, getPlayerById, increaseScore, resetScore};
     })();
 
     const gameController = (() => {
-        /*
-        What players are controlling the game?
-        Who is the active player? 
-        */
+
         let turnPosesion = null;
 
         const registerInput = () => {
-            gameManager.startTurn();
+            gameManager.startRound();
         }
-        
+
+        const definePlayers = () => {
+            if (p1Name.value != "" && p2Name.value != "" && p1Symbol.value != "" && p2Symbol.value != "") {
+                playersManager.createPlayer(p1Name.value, p1Symbol.value);
+                playersManager.createPlayer(p2Name.value, p2Symbol.value);
+                
+                gameManager.startGame();
+            } else {
+                console.log("No");
+            }
+        }
+
+        const p1Name = document.getElementById("p1Name");
+        const p2Name = document.getElementById("p2Name");
+        const p1Symbol = document.getElementById("p1Symbol");
+        const p2Symbol = document.getElementById("p2Symbol");
+        const playBtn = document.getElementById("playBtn");
+        playBtn.addEventListener("click", definePlayers, false);
+
         const domCells = Array.from(document.querySelectorAll("section button"));
         domCells.map((cell) => {cell.addEventListener("click", registerInput, false)});
 
@@ -156,14 +181,14 @@ function main() {
         let turnsLeft = 9;
 
         const startTicTacToeGame = (player1, player2) => {
-            player1Faction = createFaction(player1.getFaction());
-            player2Faction = createFaction(player2.getFaction());
+            const player1Faction = createFaction(player1.faction);
+            const player2Faction = createFaction(player2.faction);
         
-            player1Faction.addUnitType(player1.getFaction());
-            player2Faction.addUnitType(player2.getFaction());
+            player1Faction.addUnitType(player1.faction);
+            player2Faction.addUnitType(player2.faction);
         
-            player1Faction.addUnits(player1.getFaction(), "entity", 5);
-            player2Faction.addUnits(player2.getFaction(), "entity", 5);
+            player1Faction.addUnits(player1.faction, "entity", 5);
+            player2Faction.addUnits(player2.faction, "entity", 5);
         }
 
         const victoryCheck = () => {
@@ -228,7 +253,9 @@ function main() {
         const resolveTurn = () => {
             console.log("Turn made");
             if (turnsLeft !== 0 && victoryCheck()) {
-
+                return true;
+            } else {
+                return false;
             }
         }
 
@@ -241,22 +268,28 @@ function main() {
         return {startTicTacToeGame, resolveTurn};
     })();
 
-    const gameManager = ((game, gameResolveTurn) => {
-        const DEFAULT_TURNS_PER_PLAYER = 1;
+    const gameManager = (() => {
         let gameInProgress = false;
-        let gamesLeft = 0;
+        let roundLeft = 0;
 
-        const startGame = (gamesNum, turnsPerPlayer = DEFAULT_TURNS_PER_PLAYER) => {
+        const game = () => {
+            ticTacToeManager.startTicTacToeGame(playersManager.getPlayerById(0), playersManager.getPlayerById(1));  
+        }
+        
+        const resolveTurn = () => {
+            ticTacToeManager.resolveTurn();
+        }
+
+        const startGame = (roundNum) => {
             gameInProgress = true;
-            gamesLeft = gamesNum;
+            roundLeft = roundNum;
             game();
         }
 
-        const startTurn = () => {
+        const startRound = () => {
             if (gameInProgress) {
-                if (gamesLeft !== 0) {
-                    gameResolveTurn();
-                    gamesLeft--;
+                if (roundLeft !== 0) {
+                    resolveTurn() ? roundLeft-- : false;
                 } else {
                     endGame();
                 }
@@ -273,13 +306,8 @@ function main() {
             }
         }
 
-        return {startGame, startTurn};
-    })(ticTacToeManager.startTicTacToeGame(playersManager.JuJas, playersManager.PlinPlon), ticTacToeManager.resolveTurn());
-
-    playersManager.createPlayer("JuJas", "X");
-    playersManager.createPlayer("PlinPlon", "O");
-
-    gameManager.startGame(3);
+        return {startGame, startRound};
+    })();
 
     /*
     playerX = createFaction("PlayerX");

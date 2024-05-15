@@ -5,10 +5,6 @@
     text-align: center;
 }
 
-body, html{
-    height: 90%;
-}
-
 main {
     display: flex;
     flex-direction: column;
@@ -19,7 +15,7 @@ main {
 
 header {
     display: grid;
-    grid-template: 1fr 1fr / 1fr 1fr;
+    grid-template: repeat(3, 1fr) / repeat(2, 1fr);
     justify-items: center;
     align-items: center;
     row-gap: 16px;
@@ -30,11 +26,22 @@ header {
     font-size: 4rem;
 }
 
+form{
+    display: grid;
+    grid-template: repeat(3, 2rem) / repeat(4, 1fr);
+    align-items: center;
+    justify-items: center;
+}
+
+form *, #playBtn{
+    font-size: 1rem;
+}
+
 section {
     width: 300px;
     height: 300px;
     display: grid;
-    grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
     align-items: center;
 }
 
