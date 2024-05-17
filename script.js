@@ -45,6 +45,80 @@ function main() {
         return {getName, addUnitType, addUnits, selectUnit};
     }
 
+    function createPlayer (name, faction) {
+        let score = 0;
+
+        const getName = () => {
+            return name; 
+        }
+
+        const increaseScore = () => {
+            score += 1;
+        }
+
+        const resetScore = () => {
+            score = 0;
+        }
+
+        return {getName, increaseScore, resetScore};
+    }
+
+    const factionManager = (() => {
+        let factionList = {};
+
+        const addFaction = (name) => {
+            factionList[name] = createFaction(name);
+        }
+
+        const selectFaction = (name) => {
+            return factionList[name];
+        }
+        
+        return {addFaction, selectFaction};
+    })();
+
+    const playerManager = (() => {
+        let players = [];
+
+        const addPlayer = (name, faction) => {
+            if(getPlayerByName(name)[0] == undefined) {
+                const player = createPlayer(name, faction)
+                players.push(player);
+            }
+        }
+
+        const getPlayerByName = (name) => {
+            return players.filter((player) => {
+                return player.getName() == name;
+            });
+        }
+
+        const getPlayerById = (id) => {
+            return players[id];
+        }
+
+        return {addPlayer, getPlayerByName, getPlayerById};
+    })();
+
+    const consoleRender = (() => {
+
+        const showGrid = (board, property) => {
+            let visualGrid = "";
+            for (let x = 0; x < board.getGrid().length; x++) {
+                x !== 0 ? visualGrid += "\n" : false;
+                for (let y = 0; y < board.getGrid()[0].length; y++) {
+                    if (board.getCellProperty(x, y, property) instanceof createEntity) {
+                        visualGrid += `[${board.getCellProperty(x, y, property).getName()}]`;
+                    }
+                    visualGrid += `[${board.getCellProperty(x, y, property)}]`;
+                }
+            }
+            console.log(visualGrid);
+        }
+
+        return {showGrid};
+    })();
+
     const board = ((rows, columns) => {
         let grid = [];
 
@@ -103,55 +177,6 @@ function main() {
         return {getGrid, addGridProperty, resetGridProperty, getCellProperty, fillCellProperty, emptyCellProperty};
     })(3, 3);
 
-    const consoleRender = (() => {
-
-        const showGrid = (board, property) => {
-            let visualGrid = "";
-            for (let x = 0; x < board.getGrid().length; x++) {
-                x !== 0 ? visualGrid += "\n" : false;
-                for (let y = 0; y < board.getGrid()[0].length; y++) {
-                    if (board.getCellProperty(x, y, property) instanceof createEntity) {
-                        visualGrid += `[${board.getCellProperty(x, y, property).getName()}]`;
-                    }
-                    visualGrid += `[${board.getCellProperty(x, y, property)}]`;
-                }
-            }
-            console.log(visualGrid);
-        }
-
-        return {showGrid};
-    })();
-
-    const playersManager = (() => {
-        let players = []
-
-        const createPlayer = (name, faction) => {
-            if(getPlayerByName(name)[0] == undefined) {
-                players.push({name: name, faction: faction, score: 0});
-            }
-        }
-
-        const getPlayerByName = (name) => {
-            return players.filter((player) => {
-                return player.name == name;
-            });
-        }
-
-        const getPlayerById = (id) => {
-            return players[id];
-        }
-
-        const increaseScore = (id) => {
-            return players[id].score += 1;
-        }
-
-        const resetScore = (id) => {
-            return players[id].score = 0;
-        }
-
-        return {createPlayer, getPlayerByName, getPlayerById, increaseScore, resetScore};
-    })();
-
     const gameController = (() => {
 
         let activePlayer = null;
@@ -171,10 +196,10 @@ function main() {
         const definePlayers = () => {
             //Not modular design
             if (p1Name.value != "" && p2Name.value != "" && p1Symbol.value != "" && p2Symbol.value != "") {
-                playersManager.createPlayer(p1Name.value, p1Symbol.value);
-                playersManager.createPlayer(p2Name.value, p2Symbol.value);
+                playerManager.createPlayer(p1Name.value, p1Symbol.value);
+                playerManager.createPlayer(p2Name.value, p2Symbol.value);
                 
-                activePlayer = playersManager.getPlayerByName(p1Name.value);
+                activePlayer = playerManager.getPlayerByName(p1Name.value);
                 gameManager.startGame();
             } else {
                 console.log("No");
@@ -320,7 +345,7 @@ function main() {
 
         const game = () => {
             //Not modular design
-            ticTacToeManager.startTicTacToeGame(playersManager.getPlayerById(0), playersManager.getPlayerById(1));  
+            ticTacToeManager.startTicTacToeGame(playerManager.getPlayerById(0), playerManager.getPlayerById(1));  
         }
         
         const resolveTurn = (e) => {
