@@ -39,10 +39,10 @@ function main() {
             }
         }
 
-        const selectUnit = (type, number = 1) => {
+        const getUnit = (type, number = 1) => {
             return unitList[type][number-1];
         }
-        return {getName, addUnitType, addUnits, selectUnit};
+        return {getName, addUnitType, addUnits, getUnit};
     }
 
     function createPlayer (name, faction) {
@@ -50,6 +50,10 @@ function main() {
 
         const getName = () => {
             return name; 
+        }
+
+        const getFactionName = () => {
+            return faction; 
         }
 
         const increaseScore = () => {
@@ -60,7 +64,7 @@ function main() {
             score = 0;
         }
 
-        return {getName, increaseScore, resetScore};
+        return {getName, getFactionName, increaseScore, resetScore};
     }
 
     const factionManager = (() => {
@@ -68,13 +72,14 @@ function main() {
 
         const addFaction = (name) => {
             factionList[name] = createFaction(name);
+            return factionList[name];
         }
 
-        const selectFaction = (name) => {
+        const getFaction = (name) => {
             return factionList[name];
         }
         
-        return {addFaction, selectFaction};
+        return {addFaction, getFaction};
     })();
 
     const playerManager = (() => {
@@ -196,10 +201,11 @@ function main() {
         const definePlayers = () => {
             //Not modular design
             if (p1Name.value != "" && p2Name.value != "" && p1Symbol.value != "" && p2Symbol.value != "") {
-                playerManager.createPlayer(p1Name.value, p1Symbol.value);
-                playerManager.createPlayer(p2Name.value, p2Symbol.value);
+                playerManager.addPlayer(p1Name.value, p1Symbol.value);
+                playerManager.addPlayer(p2Name.value, p2Symbol.value);
                 
-                activePlayer = playerManager.getPlayerByName(p1Name.value);
+                activePlayer = playerManager.getPlayerByName(p1Name.value).getName();
+                console.log(activePlayer)
                 gameManager.startGame();
             } else {
                 console.log("No");
@@ -226,26 +232,22 @@ function main() {
         let turnsLeft = 9;
         let p1PieceOrder = 1;
         let p2PieceOrder = 1;
-        const player1Faction = null;
-        const player2Faction = null;
-        let factions = null;
 
-        const resetRound = (player1, player2) => {
+        const resetRound = () => {
             p1PieceOrder = 1;
             p2PieceOrder = 1;
             board.resetGridProperty(boardProperty);
         }
 
         const startTicTacToeGame = (player1, player2) => {
-            player1Faction = createFaction(player1.faction);
-            player2Faction = createFaction(player2.faction);
-            factions = [player1Faction, player2Faction];
+            player1Faction = factionManager.addFaction(player1.getFactionName());
+            player2Faction = factionManager.addFaction(player2.getFactionName());
         
-            player1Faction.addUnitType(player1.faction);
-            player2Faction.addUnitType(player2.faction);
-        
-            player1Faction.addUnits(player1.faction, boardProperty, 5);
-            player2Faction.addUnits(player2.faction, boardProperty, 5);
+            player1Faction.addUnitType(player1.getFactionName());
+            player2Faction.addUnitType(player2.getFactionName());
+
+            player1Faction.addUnits(player1.getFactionName(), boardProperty, 5);
+            player2Faction.addUnits(player2.getFactionName(), boardProperty, 5);
         }
 
         const victoryCheck = () => {
@@ -315,7 +317,9 @@ function main() {
                 const cell = board.getCellProperty(e.target.id[0], e.target.id[1], boardProperty)
                 console.log(board.getCellProperty(pos[0], pos[1], boardProperty));
                 if (cell == null) {
-                    board.fillCellProperty(pos, boardProperty, factions[getActivePlayer()])
+                    console.log(gameController.getActivePlayer().getName());
+                    const activePlayer = gameController.getActivePlayer().getFactionName();
+                    board.fillCellProperty(pos, boardProperty, activePlayer)
                 }
                 return false;
             } else if (turnsLeft !== 0) {
@@ -323,7 +327,7 @@ function main() {
                 resetRound();
                 return true;
             } else {
-                console.log(`${gameController.getActivePlayer()} Wins!`);
+                console.log(`${gameController.getActivePlayer().getName()} Wins!`);
                 gameController.getActivePlayer().increaseScore();
                 resetRound();
                 return true;
@@ -392,14 +396,14 @@ function main() {
     playerX.addUnits("X", "entity", 5);
     playerO.addUnits("O", "entity", 5);
 
-    playerX.selectUnit("X", 1).changePos(0,0, "entity");
-    playerX.selectUnit("X", 2).changePos(1,0, "entity");
-    playerX.selectUnit("X", 3).changePos(2,1, "entity");
-    playerX.selectUnit("X", 4).changePos(2,2, "entity");
-    playerO.selectUnit("O", 1).changePos(0,2, "entity");
-    playerO.selectUnit("O", 2).changePos(1,2, "entity");
-    playerO.selectUnit("O", 3).changePos(2,0, "entity");
-    playerO.selectUnit("O", 3).changePos(1,1, "entity");
+    playerX.getUnit("X", 1).changePos(0,0, "entity");
+    playerX.getUnit("X", 2).changePos(1,0, "entity");
+    playerX.getUnit("X", 3).changePos(2,1, "entity");
+    playerX.getUnit("X", 4).changePos(2,2, "entity");
+    playerO.getUnit("O", 1).changePos(0,2, "entity");
+    playerO.getUnit("O", 2).changePos(1,2, "entity");
+    playerO.getUnit("O", 3).changePos(2,0, "entity");
+    playerO.getUnit("O", 3).changePos(1,1, "entity");
 
     consoleRender.showGrid(board, "entity");
     /* 
