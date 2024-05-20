@@ -2,14 +2,118 @@ document.addEventListener("DOMContentLoaded", main, false);
 
 function main() {
 
-    /*
-    ____unitManager____
-    - 
-    - 
-    - 
-    - 
-    - 
-    */
+    const boardManager = (() => {
+        let gridList = {};
+
+        const createGrid = (name, rows, columns) => {
+            let grid = [];
+            for (let x = 0; x < rows; x++) {
+                grid[x] = [];
+                for (let y = 0; y < columns; y++) {
+                    grid[x][y] = null;
+                }
+            }
+
+            const fillGrid = (value) => {
+                for (let x = 0; x < rows; x++) {
+                    for (let y = 0; y < columns; y++) {
+                        grid[x][y] = value;
+                    }
+                }
+            }
+
+            const getCell = (x, y) => {
+                return grid[x][y];
+            }
+
+            const setCell = (x, y, value) => {
+                grid[x][y] = value;
+            }
+
+            const getHeight = () => {
+                return rows;
+            }
+
+            const getWidth = () => {
+                return columns;
+            }
+
+            gridList[name] = {getCell, setCell, fillGrid, getHeight, getWidth};
+        }
+
+        const getGrid = (name) => {
+            return gridList[name];
+        }
+
+        return {createGrid, getGrid};
+    })();
+
+    const unitManager = (() => {
+        let unitPoolList = {};
+
+        const createUnitPool = (type) => {
+            unitPoolList[type] = [];
+        }
+
+        const createUnitType = (type) => {
+
+            unitPoolList[type] = [];
+        }
+
+        const createUnit = (type, faction) => {
+            if (!unitPoolList[type]) {
+                createUnitPool(type);
+            }
+            const name = type + unitPoolList[type].length;
+
+            const getType = () => {
+                return type;
+            }
+
+            const getFaction = () => {
+                return faction;
+            }
+
+            const getName = () => {
+                return name;
+            }
+
+            unitPoolList[type].push({getType, getFaction, getName});
+        }
+
+        const getUnit = (type, id) => {
+            return unitPoolList[type][id];
+        }
+
+        return {createUnit, getUnit};
+    })();
+
+    const consoleRender = (() => {
+
+        const showGrid = (grid) => {
+            let visualGrid = "";
+            for (let x = 0; x < grid.getHeight(); x++) {
+                for (let y = 0; y < grid.getWidth(); y++) {
+                    if (y === 0 && x !== 0) {
+                        visualGrid += `\n`;
+                    }
+                    visualGrid += `[${grid.getCell(x, y)}]`;
+                }
+            }
+            console.log(visualGrid);
+        }
+
+        return {showGrid};
+    })();
+
+    boardManager.createGrid("test", 3, 3);
+    const gridTest = boardManager.getGrid("test");
+    consoleRender.showGrid(gridTest);
+
+    unitManager.createUnit("Monkey", "Ally");
+    const unitTest = unitManager.getUnit("Monkey", 0);
+    console.log(unitTest.getName(), unitTest.getFaction());
+
 /*
     function createEntity (id, type, gridPropertyType = null, pos = null) {
 
