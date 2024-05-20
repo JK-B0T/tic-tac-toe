@@ -55,16 +55,29 @@ function main() {
             unitPoolList[type] = [];
         }
 
+        /*
         const createUnitType = (type) => {
 
-            unitPoolList[type] = [];
+            const getType = () => {
+                return type;
+            }
+
+            return {getType}
         }
+        */
 
         const createUnit = (type, faction) => {
             if (!unitPoolList[type]) {
                 createUnitPool(type);
             }
+
+            let isActive = false;
             const name = type + unitPoolList[type].length;
+            const position = {
+                grid: null,
+                x: null,
+                y: null,
+            }
 
             const getType = () => {
                 return type;
@@ -78,7 +91,24 @@ function main() {
                 return name;
             }
 
-            unitPoolList[type].push({getType, getFaction, getName});
+            const activate = () => {
+                isActive = true;
+            }
+
+            const deactivate = () => {
+                isActive = false;
+            }
+
+            const changePos = (x, y) => {
+                if (isActive !== true) {
+                    isActive = true;
+                } else {
+                    boardManager.
+                }
+                borad
+            }
+
+            unitPoolList[type].push({getType, getFaction, getName, activate, deactivate});
         }
 
         const getUnit = (type, id) => {
