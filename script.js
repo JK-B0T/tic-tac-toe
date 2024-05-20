@@ -13,11 +13,11 @@ function main() {
 /*
     function createEntity (id, type, gridPropertyType = null, pos = null) {
 
-        const changePos = (x, y, property) => {
+        const changePos = (newPos, property) => {
+            pos = newPos;
             if (pos !== null) {
                 board.emptyCellProperty(pos, property);
             }
-            pos = [x, y];
             board.fillCellProperty(pos, gridPropertyType || property, type + id);
         }
 
@@ -28,7 +28,15 @@ function main() {
         const getType = () => {
             return type;
         }
-        return {changePos, getName, getType};
+
+        const getPos = () => {
+            return pos;
+        }
+
+        const resetPos = () => {
+            pos = null;
+        }
+        return {changePos, getName, getType, getPos, resetPos};
     }
 
     function createFaction (name) {
@@ -51,7 +59,25 @@ function main() {
         const getUnit = (type, number = 1) => {
             return unitList[type][number-1];
         }
-        return {getName, addUnitType, addUnits, getUnit};
+
+        const getNextUnit = (type) => {
+            for (let i = 0; i < unitList[type].length; i++) {
+                if (unitList[type][i].getPos() === null) {
+                    return unitList[type][i];
+                }
+            }
+        }
+
+        const resetAllUnits = (type) => {
+            for (let i = 0; i < unitList[type].length; i++) {
+                if (unitList[type][i].getPos() !== null) {
+                    board.emptyCellProperty(unitList[type][i].getPos());
+                    unitList[type][i].resetPos();
+                }
+            }
+        }
+
+        return {getName, addUnitType, addUnits, getUnit, getNextUnit, resetAllUnits};
     }
 
     function createPlayer (name, faction) {
@@ -73,7 +99,11 @@ function main() {
             score = 0;
         }
 
-        return {getName, getFactionName, increaseScore, resetScore};
+        const getScore = () => {
+            return score;
+        }
+
+        return {getName, getFactionName, increaseScore, resetScore, getScore};
     }
 
     const factionManager = (() => {
@@ -95,14 +125,14 @@ function main() {
         let players = [];
 
         const addPlayer = (name, faction) => {
-            if(getPlayerByName(name)[0] == undefined) {
+            if(getPlayerByName(name) == undefined) {
                 const player = createPlayer(name, faction)
                 players.push(player);
             }
         }
 
         const getPlayerByName = (name) => {
-            return players.filter((player) => {
+            return players.find((player) => {
                 return player.getName() == name;
             });
         }
@@ -187,7 +217,6 @@ function main() {
         }
 
         createGrid(rows, columns);
-        addGridProperty("entity");
         return {getGrid, addGridProperty, resetGridProperty, getCellProperty, fillCellProperty, emptyCellProperty};
     })(3, 3);
 
@@ -213,9 +242,8 @@ function main() {
                 playerManager.addPlayer(p1Name.value, p1Symbol.value);
                 playerManager.addPlayer(p2Name.value, p2Symbol.value);
                 
-                activePlayer = playerManager.getPlayerByName(p1Name.value).getName();
-                console.log(activePlayer)
-                gameManager.startGame();
+                activePlayer = playerManager.getPlayerByName(p1Name.value);
+                gameManager.startGame(3);
             } else {
                 console.log("No");
             }
@@ -239,13 +267,12 @@ function main() {
         boardProperty = "ticTacToe"
         board.addGridProperty(boardProperty);
         let turnsLeft = 9;
-        let p1PieceOrder = 1;
-        let p2PieceOrder = 1;
 
         const resetRound = () => {
-            p1PieceOrder = 1;
-            p2PieceOrder = 1;
+            turnsLeft = 9;
             board.resetGridProperty(boardProperty);
+            factionManager.getFaction(playerManager.getPlayerById(0).getFactionName()).resetAllUnits(playerManager.getPlayerById(0).getFactionName());
+            factionManager.getFaction(playerManager.getPlayerById(1).getFactionName()).resetAllUnits(playerManager.getPlayerById(1).getFactionName());
         }
 
         const startTicTacToeGame = (player1, player2) => {
@@ -261,9 +288,14 @@ function main() {
 
         const victoryCheck = () => {
         
+        const victoryCheck = (pos) => {
+            const x = pos[0];
+            const y = pos[1];
             let isWin = true;
-            for (let iy = 0; iy < rows; iy++) {
-                if (!(grid[x][iy].getSymbol() === symbol)) {
+            let grid = board.getGrid();
+            console.log(grid[x][y])
+            for (let iy = 0; iy < grid.length; iy++) {
+                if (!(grid[x][iy].getType() === symbol)) {
                     isWin = false;
                     break;
                 }
@@ -274,8 +306,8 @@ function main() {
                 isWin = true;
             }
 
-            for (let ix = 0; ix < columns; ix++) {
-                if (!(grid[ix][y].getSymbol() === symbol)) {
+            for (let ix = 0; ix < grid[ix].length; ix++) {
+                if (!(grid[ix][y].getType() === symbol)) {
                     isWin = false;
                     break;
                 }
@@ -287,8 +319,8 @@ function main() {
             }
 
             let iy = 0;
-            for (let ix = 0; ix < columns; ix++) {
-                if (!(grid[ix][iy].getSymbol() === symbol)) {
+            for (let ix = 0; ix < grid[ix].length; ix++) {
+                if (!(grid[ix][iy].getType() === symbol)) {
                     isWin = false;
                     break;
                 }
@@ -301,8 +333,8 @@ function main() {
             }
 
             iy = rows-1;
-            for (let ix = 0; ix < columns; ix++) {
-                if (!(grid[ix][iy].getSymbol() === symbol)) {
+            for (let ix = 0; ix < grid[ix].length; ix++) {
+                if (!(grid[ix][iy].getType() === symbol)) {
                     isWin = false;
                     break;
                 }
@@ -320,26 +352,35 @@ function main() {
         }
 
         const resolveTurn = (e) => {
-            console.log("Turn made");
-            if (turnsLeft !== 0 && victoryCheck()) {
-                const pos = [e.target.id[0], e.target.id[1]];
-                const cell = board.getCellProperty(e.target.id[0], e.target.id[1], boardProperty)
-                console.log(board.getCellProperty(pos[0], pos[1], boardProperty));
-                if (cell == null) {
-                    console.log(gameController.getActivePlayer().getName());
-                    const activePlayer = gameController.getActivePlayer().getFactionName();
-                    board.fillCellProperty(pos, boardProperty, activePlayer)
+            const pos = [e.target.id[0], e.target.id[1]];
+            const cell = board.getCellProperty(e.target.id[0], e.target.id[1], boardProperty)
+            if (cell == null) {
+                const unit = factionManager.getFaction(gameController.getActivePlayer().getFactionName()).getNextUnit(gameController.getActivePlayer().getFactionName())
+                const activePlayer = gameController.getActivePlayer();
+                unit.changePos(pos, boardProperty, activePlayer);
+                consoleRender.showGrid(board, boardProperty);
+
+                if(gameController.getActivePlayer() == playerManager.getPlayerById(0)) {
+                    gameController.setActivePlayer(playerManager.getPlayerById(1));
+                } else {
+                    gameController.setActivePlayer(playerManager.getPlayerById(0));
                 }
+
+                if (victoryCheck(pos)){
+                    console.log(`${gameController.getActivePlayer().getName()} Wins!`);
+                    gameController.getActivePlayer().increaseScore();
+                    resetRound();
+                    return true;
+                }
+
+                turnsLeft--;
+                if (turnsLeft === 0) {
+                    console.log("Tables");
+                    resetRound();
+                    return true;
+                }
+
                 return false;
-            } else if (turnsLeft !== 0) {
-                console.log("Tables");
-                resetRound();
-                return true;
-            } else {
-                console.log(`${gameController.getActivePlayer().getName()} Wins!`);
-                gameController.getActivePlayer().increaseScore();
-                resetRound();
-                return true;
             }
         }
 
@@ -363,7 +404,7 @@ function main() {
         
         const resolveTurn = (e) => {
             //Not modular design
-            ticTacToeManager.resolveTurn(e);
+            return ticTacToeManager.resolveTurn(e);
         }
 
         const startGame = (roundNum) => {
@@ -374,10 +415,13 @@ function main() {
 
         const startRound = (e) => {
             if (gameInProgress) {
-                if (roundLeft !== 0) {
-                    resolveTurn(e) ? roundLeft-- : false;
-                } else {
-                    endGame();
+                if (resolveTurn(e)) {
+                    roundLeft--;
+                    console.log(roundLeft);
+
+                    if (roundLeft <= 0) {
+                        endGame();
+                    }
                 }
             } else {
                 console.log("No game in progress");
@@ -385,11 +429,16 @@ function main() {
         }
 
         const endGame = () => {
-            if (gameInProgress) {
-
+            gameInProgress = false;
+            if (playerManager.getPlayerById(0).getScore() > playerManager.getPlayerById(1).getScore()) {
+                console.log(playerManager.getPlayerById(0).getName(), "Wins the Game!")
+            } else if (playerManager.getPlayerById(0).getScore() < playerManager.getPlayerById(1).getScore()) {
+                console.log(playerManager.getPlayerById(1).getName(), "Wins the Game!")
             } else {
-                console.log("No game in progress");
+                console.log("The game ends with tables!")
             }
+            playerManager.getPlayerById(0).resetScore();
+            playerManager.getPlayerById(1).resetScore();
         }
 
         return {startGame, startRound};
