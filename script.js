@@ -51,8 +51,8 @@ function main() {
     const unitManager = (() => {
         let unitPoolList = {};
 
-        const createUnitPool = (type) => {
-            unitPoolList[type] = [];
+        const createUnitPool = (poolName) => {
+            unitPoolList[poolName] = [];
         }
 
         /*
@@ -66,49 +66,35 @@ function main() {
         }
         */
 
-        const createUnit = (type, faction) => {
+        const createUnit = (type, faction, defaultGridName) => {
             if (!unitPoolList[type]) {
                 createUnitPool(type);
             }
+            const defaultGrid = boardManager.getGrid(defaultGridName);
 
             let isActive = false;
             const name = type + unitPoolList[type].length;
-            const position = {
-                grid: null,
-                x: null,
-                y: null,
-            }
 
-            const getType = () => {
-                return type;
-            }
+            const unit = {
+                getType: () => {return type;},
+    
+                getFaction: () => {return faction;},
+    
+                getName: () => {return name;},
+    
+                activate: () => {isActive = true},
+    
+                deactivate: () => {isActive = false},
+    
+                changePos: (x, y, grid = defaultGrid) => {
+                    if (isActive !== true) {
+                        isActive = true;
+                    } 
+                    grid.setCell(x, y, unit);
+                },
+            };
 
-            const getFaction = () => {
-                return faction;
-            }
-
-            const getName = () => {
-                return name;
-            }
-
-            const activate = () => {
-                isActive = true;
-            }
-
-            const deactivate = () => {
-                isActive = false;
-            }
-
-            const changePos = (x, y) => {
-                if (isActive !== true) {
-                    isActive = true;
-                } else {
-                    boardManager.
-                }
-                borad
-            }
-
-            unitPoolList[type].push({getType, getFaction, getName, activate, deactivate});
+            unitPoolList[type].push(unit);
         }
 
         const getUnit = (type, id) => {
@@ -127,7 +113,11 @@ function main() {
                     if (y === 0 && x !== 0) {
                         visualGrid += `\n`;
                     }
-                    visualGrid += `[${grid.getCell(x, y)}]`;
+                    if (grid.getCell(x, y) !== null) {
+                        visualGrid += `[${grid.getCell(x, y).getName()}]`;
+                    } else {
+                        visualGrid += `[${grid.getCell(x, y)}]`;
+                    }
                 }
             }
             console.log(visualGrid);
@@ -140,9 +130,13 @@ function main() {
     const gridTest = boardManager.getGrid("test");
     consoleRender.showGrid(gridTest);
 
-    unitManager.createUnit("Monkey", "Ally");
+    unitManager.createUnit("Monkey", "Ally", "test");
     const unitTest = unitManager.getUnit("Monkey", 0);
     console.log(unitTest.getName(), unitTest.getFaction());
+
+    unitTest.changePos(1,1);
+    consoleRender.showGrid(gridTest);
+    console.log(gridTest.getCell(1,1));
 
 /*
     function createEntity (id, type, gridPropertyType = null, pos = null) {
