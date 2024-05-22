@@ -2,6 +2,36 @@ document.addEventListener("DOMContentLoaded", main, false);
 
 function main() {
 
+    //
+    const consoleRenderer = (() => {
+
+        const showGrid = (grid) => {
+            let visualGrid = "";
+            for (let x = 0; x < grid.getHeight(); x++) {
+                for (let y = 0; y < grid.getWidth(); y++) {
+                    if (y === 0 && x !== 0) {
+                        visualGrid += `\n`;
+                    }
+                    if (grid.getCell(x, y) !== null) {
+                        visualGrid += `[${grid.getCell(x, y).getName()}]`;
+                    } else {
+                        visualGrid += `[${grid.getCell(x, y)}]`;
+                    }
+                }
+            }
+            console.log(visualGrid);
+        }
+
+        return {showGrid};
+    })();
+
+    const htmlRenderer = (() => {
+        /*
+            
+        */
+    })();
+
+    //
     const boardManager = (() => {
         let gridList = {};
 
@@ -48,33 +78,9 @@ function main() {
         return {createGrid, getGrid};
     })();
 
+    //
     const unitManager = (() => {
-        /*
-        - Creates a unitPool dictionary.
-        - Creates a unitFactory dictionary.
 
-        ___createUnitType(unitTypeProperties, typeName, poolSize)___
-        ------------This Could and maybe must be separeted into different methods---------
-        - Receives (unit type properties), (type name) and (pool size).
-        - Creates a factory and a pool where are instances for that unit are storage.
-            -Factory uses unit type properties to define the special traits of the unit type, it also adds the common properties.
-             faction, type(uses typeName parameter), id(number that goes up everytime a new instance is created),
-             name(typeName + id), isActive(pool activation value), defaultGrid(grid in which it acts by default).
-            - If the game request more units that deactivated units are in the pool, new intances are created and added to the pool with the adecuate unit factory.
-        - Adds factories and pools to their dictionaries where the type name matches the factory and pool key values.
-        - Uses Unit Factory to create a number of intances equal to the pool size parameter.
-
-        ___spawnUnit(x, y, grid = unit.defaultGrid, type)___
-        - Receives coorditanes, the grid in which to spawn and the unit type.
-        - If the space is avalible, sets the cell value to a new unit from the specified type and then activates it.
-
-        ___despawnUnit(x, y, grid = unit.defaultGrid)___
-        - Receives coorditanes, the grid in which to despawn.
-        - If the space is not avalible, deactivates the unit in it and then sets the cell value to null.
-
-        ___moveUnit(x, y, unit)___
-        - if the unit is active, sets it to the new specified coordinates and eliminates it from the last coordinates
-        */
         let unitPoolList = {};
         let unitFactoryList = {};
 
@@ -111,13 +117,6 @@ function main() {
                         activate: () => {isActive = true},
             
                         deactivate: () => {isActive = false},
-            
-                        changePos: (x, y, grid = defaultGrid) => {
-                            if (isActive !== true) {
-                                baseUnit.activate();
-                            } 
-                            grid.setCell(x, y, baseUnit);
-                        },
                     };
                     id++;
                     const unitProperties = typeProperties;
@@ -170,70 +169,34 @@ function main() {
             return unitPoolList[poolname];
         }
 
-        return {createUnitType, getPool};
-    })();
-
-    const consoleRender = (() => {
-
-        const showGrid = (grid) => {
-            let visualGrid = "";
-            for (let x = 0; x < grid.getHeight(); x++) {
-                for (let y = 0; y < grid.getWidth(); y++) {
-                    if (y === 0 && x !== 0) {
-                        visualGrid += `\n`;
-                    }
-                    if (grid.getCell(x, y) !== null) {
-                        visualGrid += `[${grid.getCell(x, y).getName()}]`;
-                    } else {
-                        visualGrid += `[${grid.getCell(x, y)}]`;
-                    }
-                }
-            }
-            console.log(visualGrid);
+        const moveUnit = (ix, iy, nx, ny) => {
+            const unit = grid.getCell(ix, iy);
+            grid.setCell(ix, iy, null);
+            grid.setCell(nx, ny, unit);
         }
 
-        return {showGrid};
+        return {createUnitType, getPool, moveUnit};
     })();
 
-    boardManager.createGrid("test", 3, 3);
-    const gridTest = boardManager.getGrid("test");
-    consoleRender.showGrid(gridTest);
+    const playerManager = (() => {
+        /*
+            
+        */
+    })();
 
-    const monkeProperties = {
-        alive: true,
-        bananas: 10,
-        eatBananas: function (num) {
-            for (let i = 0; i < num; i++) {
-                this.bananas--;
-            }
+    const gameController = (() => {
+        /*
+            
+        */
+    })();
 
-            if (this.bananas <= 0) {
-                this.alive = false;
-            }
-        },
-    }
+    const gameManager = (() => {
+        /*
 
-    unitManager.createUnitType("Monke", gridTest, 20, monkeProperties);
-    const monkePool = unitManager.getPool("Monke");
+        */
+    })();
+}
 
-    monkePool.spawnUnit(1,1,"GoodMonke");
-    const goodMonke = gridTest.getCell(1,1);
-    consoleRender.showGrid(gridTest);
-    console.log(goodMonke.getName(), goodMonke.alive, goodMonke.getFaction(), goodMonke.getActivation());
-
-    monkePool.spawnUnit(2,2,"BadMonke");
-    const badMonke = gridTest.getCell(2,2);
-    consoleRender.showGrid(gridTest);
-    console.log(badMonke.getName(), badMonke.alive, badMonke.getFaction(), badMonke.getActivation());
-
-    goodMonke.eatBananas(3);
-    badMonke.eatBananas(10);
-    console.log(goodMonke.getName(), goodMonke.alive, goodMonke.getFaction(), goodMonke.bananas);
-    console.log(badMonke.getName(), badMonke.alive, badMonke.getFaction(), badMonke.bananas);
-
-    monkePool.despawnUnit(2,2);
-    console.log(goodMonke.getName(), goodMonke.alive, goodMonke.getFaction(), goodMonke.getActivation(), goodMonke.bananas);
-    console.log(badMonke.getName(), badMonke.alive, badMonke.getFaction(), badMonke.getActivation(), badMonke.bananas);
 /*
     function createEntity (id, type, gridPropertyType = null, pos = null) {
 
@@ -668,4 +631,3 @@ function main() {
         return {startGame, startRound};
     })();
     */
-}
