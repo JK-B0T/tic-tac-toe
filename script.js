@@ -78,84 +78,99 @@ function main() {
         let unitPoolList = {};
         let unitFactoryList = {};
 
-        const createUnitPool = (poolName) => {
-            unitPoolList[poolName] = [];
-        }
+        /**
+         * 
+         * @param {string} typeName 
+         * @param {grid} defaultGrid 
+         * @param {int} poolSize 
+         * @param {object} typeProperties 
+         */
+        const createUnitType = (typeName, defaultGrid, poolSize, typeProperties = {}) => {
 
-        const createUnitFactory = (unitProperties) => {
-            if (!unitPoolList[type]) {
-                createUnitPool(type);
-            }
-            const defaultGrid = boardManager.getGrid(defaultGridName);
-            let isActive = false;
-            const id = unitPoolList[type].length;
-            const name = type + id;
+            const createUnitFactory = () => {
+                let id = 0;
+                const createUnit = () => {
+                    let faction = null;
+                    let isActive = false;
+                    const type = typeName;
+                    const name = type + id;
+                    
+                    const baseUnit = {
+                        getType: () => {return type;},
+                            
+                        getId: () => {return id;},
             
-            const unit = {
-                getType: () => {return type;},
+                        getName: () => {return name;},
+            
+                        getFaction: () => {return faction;},
     
-                getFaction: () => {return faction;},
-
-                getId: () => {return id;},
-    
-                getName: () => {return name;},
-
-                getActivation: () => {return isActive;},
-    
-                activate: () => {isActive = true},
-    
-                deactivate: () => {isActive = false},
-    
-                changePos: (x, y, grid = defaultGrid) => {
-                    if (isActive !== true) {
-                        unit.activate();
-                    } 
-                    grid.setCell(x, y, unit);
-                },
-            };
-        }
-
-        const createUnit = (type, faction, defaultGridName) => {
-            /*if (!unitPoolList[type]) {
-                createUnitPool(type);
+                        setFaction: (newFaction) => {faction = newFaction;},
+        
+                        getActivation: () => {return isActive;},
+            
+                        activate: () => {isActive = true},
+            
+                        deactivate: () => {isActive = false},
+            
+                        changePos: (x, y, grid = defaultGrid) => {
+                            if (isActive !== true) {
+                                baseUnit.activate();
+                            } 
+                            grid.setCell(x, y, baseUnit);
+                        },
+                    };
+                    id++;
+                    const unitProperties = typeProperties;
+                    return Object.assign({}, baseUnit, unitProperties);
+                }
+                
+                return {createUnit}
             }
-            const defaultGrid = boardManager.getGrid(defaultGridName);
+            unitFactoryList[typeName] = createUnitFactory();
 
-            let isActive = false;
-            const id = unitPoolList[type].length;
-            const name = type + id;
+            const createUnitPool = () => {
+                let pool = [];
 
-            const unit = {
-                getType: () => {return type;},
-    
-                getFaction: () => {return faction;},
+                for(let i = 0; i < poolSize; i++) {
+                    pool[i] = unitFactoryList[typeName].createUnit();
+                }
 
-                getId: () => {return id;},
-    
-                getName: () => {return name;},
-
-                getActivation: () => {return isActive;},
-    
-                activate: () => {isActive = true},
-    
-                deactivate: () => {isActive = false},
-    
-                changePos: (x, y, grid = defaultGrid) => {
-                    if (isActive !== true) {
-                        unit.activate();
-                    } 
-                    grid.setCell(x, y, unit);
-                },
-            };
-
-            unitPoolList[type].push(unit);*/
+                const spawnUnit = (x, y, faction, grid = defaultGrid) => {
+                    let unitSpawned = false;
+                    for(let i = 0; i < poolSize; i++) {
+                        if (!pool[i].getActivation()) {
+                            pool[i].activate();
+                            pool[i].setFaction(faction);
+                            grid.setCell(x, y, pool[i]);
+                            unitSpawned = true;
+                            break;
+                        }
+                    }
+                    if (!unitSpawned) {
+                        pool.push(unitFactoryList[typeName].createUnit());
+                        pool[pool.length-1].activate();
+                        grid.setCell(x, y, pool[pool.length-1]);
+                    }
+                }
+                
+                const despawnUnit = (x, y, grid = defaultGrid) => {
+                    unit = grid.getCell(x, y);
+                    if (unit !== null) {
+                        grid.setCell(x, y, null);
+                        unit.deactivate();
+                    }
+                }
+                
+                return {spawnUnit, despawnUnit}
+            }
+            unitPoolList[typeName] = createUnitPool();
         }
 
-        const getUnit = (type, id) => {
-            return unitPoolList[type][id];
+        const getPool = (poolname) => {
+            return unitPoolList[poolname];
         }
 
-        return {createUnit, getUnit};
+        return {createUnitType, getPool};
     })();
 
     const consoleRender = (() => {
@@ -184,23 +199,41 @@ function main() {
     const gridTest = boardManager.getGrid("test");
     consoleRender.showGrid(gridTest);
 
-    unitManager.createUnit("Monkey", "Ally", "test");
-    const monke1 = unitManager.getUnit("Monkey", 0);
-    console.log(monke1.getName(), monke1.getFaction(), monke1.getActivation());
+    const monkeProperties = {
+        alive: true,
+        bananas: 10,
+        eatBananas: function (num) {
+            for (let i = 0; i < num; i++) {
+                this.bananas--;
+            }
 
-        monke1.changePos(1,1);
+            if (this.bananas <= 0) {
+                this.alive = false;
+            }
+        },
+    }
+
+    unitManager.createUnitType("Monke", gridTest, 20, monkeProperties);
+    const monkePool = unitManager.getPool("Monke");
+
+    monkePool.spawnUnit(1,1,"GoodMonke");
+    const goodMonke = gridTest.getCell(1,1);
     consoleRender.showGrid(gridTest);
-    console.log(monke1.getName(), monke1.getFaction(), monke1.getActivation());
+    console.log(goodMonke.getName(), goodMonke.alive, goodMonke.getFaction(), goodMonke.getActivation());
 
-    unitManager.createUnit("Monkey", "Enemy", "test");
-    const monke2 = unitManager.getUnit("Monkey", 1);
-    console.log(monke2.getName(), monke2.getFaction(), monke2.getActivation());
-
-    monke2.changePos(2,2);
+    monkePool.spawnUnit(2,2,"BadMonke");
+    const badMonke = gridTest.getCell(2,2);
     consoleRender.showGrid(gridTest);
-    console.log(monke2.getName(), monke2.getFaction(), monke2.getActivation());
+    console.log(badMonke.getName(), badMonke.alive, badMonke.getFaction(), badMonke.getActivation());
 
+    goodMonke.eatBananas(3);
+    badMonke.eatBananas(10);
+    console.log(goodMonke.getName(), goodMonke.alive, goodMonke.getFaction(), goodMonke.bananas);
+    console.log(badMonke.getName(), badMonke.alive, badMonke.getFaction(), badMonke.bananas);
 
+    monkePool.despawnUnit(2,2);
+    console.log(goodMonke.getName(), goodMonke.alive, goodMonke.getFaction(), goodMonke.getActivation(), goodMonke.bananas);
+    console.log(badMonke.getName(), badMonke.alive, badMonke.getFaction(), badMonke.getActivation(), badMonke.bananas);
 /*
     function createEntity (id, type, gridPropertyType = null, pos = null) {
 
