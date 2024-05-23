@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", main, false);
 
 function main() {
 
-    //
     const consoleRenderer = (() => {
 
         const showGrid = (grid) => {
@@ -23,7 +22,7 @@ function main() {
         }
 
         return {showGrid};
-    })();
+    })();//
 
     const htmlRenderer = (() => {
         /*
@@ -31,7 +30,6 @@ function main() {
         */
     })();
 
-    //
     const boardManager = (() => {
         let gridList = {};
 
@@ -76,9 +74,8 @@ function main() {
         }
 
         return {createGrid, getGrid};
-    })();
+    })();//
 
-    //
     const unitManager = (() => {
 
         let unitPoolList = {};
@@ -176,27 +173,86 @@ function main() {
         }
 
         return {createUnitType, getPool, moveUnit};
-    })();
+    })();//
 
     const playerManager = (() => {
-        /*
-            
-        */
+       let playerList = {};
+
+        const createPlayer = (name, faction, playerProperties = {}) => {
+            let score = 0;
+            let turnNum = 1;
+
+            const basePlayer = {
+                getName: () => {return name;},
+    
+                getFaction: () => {return faction;},
+    
+                increaseScore: () => {score++;},
+    
+                resetScore: () => {score = 0;},
+
+                getTurnNumber: () => {return turnNum;},
+
+                setTurnNumber: (newTurnNum) => {turnNum = newTurnNum;},
+            }
+
+            return Object.assign({}, basePlayer, playerProperties)
+        }
+
+        const addPlayer = (name, faction, playerProperties = {}) => {
+            playerList[name] = createPlayer(name, faction, playerProperties);
+        }
+
+        const getPlayers = (playersToReturn) => {
+            let returningPlayers = []
+            for (const playerName of playersToReturn) {
+                console.log(playerName)
+                if (playerList.hasOwnProperty(playerName)) {
+                    returningPlayers.push(playerList[playerName]);
+                }
+            }
+            return returningPlayers;
+        }
+
+        return {addPlayer, getPlayers};
     })();
 
     const gameController = (() => {
         /*
-            
+            _
         */
     })();
 
     const gameManager = (() => {
         /*
+            Game states: start menu, game in progress, endgame state
 
+            ___startGame___
+            -Receives a function and an infinity number of players
+            -changes state to game in progress
+            -executes game function with players that are going to play.
+            ___startRound___
         */
     })();
-}
 
+    const tictac = {
+        symbol: null,
+
+        getSymbol: function () {return this.symbol;},
+
+        setSymbol: function (newSymbol) {this.symbol = newSymbol;},
+    }
+    playerManager.addPlayer("pxp", "player1", tictac);
+    playerManager.addPlayer("pop", "player2", tictac);
+    playerManager.addPlayer("pup", "player3", tictac);
+
+    const players = playerManager.getPlayers(["pxp", "pop"]);
+
+    players[0].setSymbol("x");
+
+    console.log(players[0].getName(), players[0].getSymbol(), players[0].getFaction());
+    console.log(players[1].getName(), players[1].getSymbol(), players[1].getFaction());
+}
 /*
     function createEntity (id, type, gridPropertyType = null, pos = null) {
 
