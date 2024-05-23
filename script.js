@@ -198,6 +198,10 @@ function main() {
                 getName: () => {return name;},
     
                 getFaction: () => {return faction;},
+
+                setFaction: (newFaction) => {faction = newFaction;},
+
+                getScore: () => {return score;},
     
                 increaseScore: () => {score++;},
     
@@ -218,7 +222,6 @@ function main() {
         const getPlayers = (playersToReturn) => {
             let returningPlayers = []
             for (const playerName of playersToReturn) {
-                console.log(playerName)
                 if (playerList.hasOwnProperty(playerName)) {
                     returningPlayers.push(playerList[playerName]);
                 }
@@ -246,8 +249,12 @@ function main() {
             return activePlayer;
         }
 
+        const setActivePlayer = (newPlayer) => {
+            activePlayer = newPlayer;
+        }
+
         const progressTurn = () => {
-            if (activePlayer.getTurnNumber() === 0) {
+            if (activePlayer.getTurnNumber() === 1) {
                 if (players[players.length-1] === activePlayer) {
                     activePlayer = players[0];
                     activePlayerIndex = 0;
@@ -260,17 +267,12 @@ function main() {
             }
         }
 
-        const registerInput = (e) => {
-            gameManager.startRound(e);
-        }
-
-        return {setPlayers, getActivePlayer, progressTurn};
+        return {setPlayers, getActivePlayer, setActivePlayer, progressTurn};
     })();
 
     const gameManager = (() => {
         let gameState = "startMenu";
         let rounds = 0;
-        let gameFunction = null;
 
         const getGameState = () => {
             return gameState;
@@ -311,7 +313,8 @@ function main() {
     })();
 
     const ticTacToeManager = (() => {
-        const grid = boardManager.createGrid("tictactoe", 3, 3);
+        boardManager.createGrid("tictactoe", 3, 3);
+        const grid = boardManager.getGrid("tictactoe");
         let turnsLeft = 9;
         let pool1 = null;
         let pool2 = null;
@@ -321,16 +324,14 @@ function main() {
             setSymbol: function (newSymbol) {this.symbol = newSymbol},
         }
 
-        const p1Name = document.getElementById("p1Name");
-        const p2Name = document.getElementById("p2Name");
-        const p1Symbol = document.getElementById("p1Symbol");
-        const p2Symbol = document.getElementById("p2Symbol");
+        const p1Name = document.getElementById("p1Name").value;
+        const p2Name = document.getElementById("p2Name").value;
+        const p1Symbol = document.getElementById("p1Symbol").value;
+        const p2Symbol = document.getElementById("p2Symbol").value;
+        const dialog = document.querySelector("dialog");
         const newGameBtn = document.getElementById("newGameBtn");
         const playBtn = document.getElementById("playBtn");
         const domCells = Array.from(document.querySelectorAll(".boardGrid button"));
-
-        playBtn.addEventListener("click", startTicTacToeGame, false);
-        domCells.map((cell) => {cell.addEventListener("click", resolveTurn, false)});
 
         const definePlayers = () => {
             if (!playerManager.hasPlayer(p1Name)) {
@@ -356,9 +357,11 @@ function main() {
             pool1 = unitManager.getPool(p1Symbol);
             pool2 = unitManager.getPool(p2Symbol);
             gameController.setPlayers(players);
+            gameController.setActivePlayer(players[0]);
         }
 
         const startTicTacToeGame = () => {
+            dialog.close();
             definePlayers();
             gameManager.startGame();
             //htmlRenderer.renderGrid(grid);
@@ -368,7 +371,7 @@ function main() {
             const activePlayerSymbol = gameController.getActivePlayer().getSymbol();
 
             //Vertical Check
-            for (let iy = 0; iy < grid.length; iy++) {
+            for (let iy = 0; iy < grid.getWidth(); iy++) {
                 if (grid.getCell(x, iy) === null) {
                     break;
                 } else if (grid.getCell(x, iy).getType() !== activePlayerSymbol){
@@ -379,24 +382,24 @@ function main() {
             }
 
             //Horizontal Check
-            for (let ix = 0; ix < grid[ix].length; ix++) {
+            for (let ix = 0; ix < grid.getHeight(); ix++) {
                 if (grid.getCell(ix, y) === null) {
                     break;
                 } else if (grid.getCell(ix, y).getType() !== activePlayerSymbol){
                     break;
-                } else if (iy === 2){
+                } else if (ix === 2){
                     return true;
                 }
             }
 
             //Diagonal Left Up-Down Check
             let iy = 0;
-            for (let ix = 0; ix < grid[ix].length; ix++) {
+            for (let ix = 0; ix < grid.getHeight(); ix++) {
                 if (grid.getCell(ix, iy) === null) {
                     break;
                 } else if (grid.getCell(ix, iy).getType() !== activePlayerSymbol){
                     break;
-                } else if (iy === 2){
+                } else if (ix === 2){
                     return true;
                 }
                 iy++;
@@ -404,12 +407,12 @@ function main() {
 
             //Diagonal Right Up-Down Check
             iy = 2;
-            for (let ix = 0; ix < grid[ix].length; ix++) {
+            for (let ix = 0; ix < grid.getWidth(); ix++) {
                 if (grid.getCell(ix, iy) === null) {
                     break;
                 } else if (grid.getCell(ix, iy).getType() !== activePlayerSymbol){
                     break;
-                } else if (iy === 2){
+                } else if (ix === 2){
                     return true;
                 }
                 iy--;
@@ -434,6 +437,7 @@ function main() {
                     //Render html turn win
                     //Render console turn win
                     activePlayer.increaseScore();
+                    console.log(activePlayer.getScore())
                     //endRound -> grid resets & roundNum--
                 };
 
@@ -462,6 +466,10 @@ function main() {
                 
             }
         }
+
+        playBtn.addEventListener("click", startTicTacToeGame, false);
+        newGameBtn.addEventListener("click", () => {dialog.showModal()}, false);
+        domCells.map((cell) => {cell.addEventListener("click", resolveTurn, false)});
         return {startTicTacToeGame, resolveTurn};
     })();
 

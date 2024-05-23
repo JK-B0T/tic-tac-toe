@@ -14,10 +14,6 @@ main {
 }
 
 dialog {
-    display: grid;
-    grid-template: repeat(3, 1fr) / repeat(2, 1fr);
-    justify-items: center;
-    align-items: center;
     row-gap: 16px;
 }
 
