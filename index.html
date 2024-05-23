@@ -9,9 +9,8 @@
 </head>
 <body>
     <main>
-        <header>
-            <span class="ocupyAll">Turn 9</span>
-            <span class="ocupyAll">Player 1-(x)</span>
+        <button type="button" id="newGameBtn">New Game!</button>
+        <dialog>
             <form class="ocupyAll">
                 <label for="p1Name">P1 Name:</label>
                 <input type="text" id="p1Name">
@@ -21,12 +20,16 @@
                 <input type="text" id="p2Name">
                 <label for="p2Symbol">P2 Symbol:</label>
                 <input type="text" id="p2Symbol">
-                <button type="button" id="playBtn" class="ocupyAll">Play</button>
+                <button type="button" id="playBtn" class="ocupyAll">Start Game</button>
             </form>
-            <span>Player 1: 2</span>
-            <span>Player 2: 3</span>
+        </dialog>
+        <header>
+            <!--span class="ocupyAll">Turn 9</span-->
+            <!--span class="ocupyAll">Player 1-(x)</span-->
+            <!--span>Player 1: 2</span-->
+            <!--span>Player 2: 3</span-->
         </header>
-        <section>
+        <section class="boardGrid">
             <button type="button" id="00">x</button>
             <button type="button" id="01">o</button>
             <button type="button" id="02">x</button>
@@ -37,7 +40,7 @@
             <button type="button" id="21">x</button>
             <button type="button" id="22">o</button>
         </section>
-        <span>Player 1 WINS</span>
+        <!--span>Player 1 WINS</span-->
     </main>
 </body>
 </html>

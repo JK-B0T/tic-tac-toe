@@ -22,7 +22,7 @@ function main() {
         }
 
         return {showGrid};
-    })();//
+    })();
 
     const htmlRenderer = (() => {
         /*
@@ -74,7 +74,7 @@ function main() {
         }
 
         return {createGrid, getGrid};
-    })();//
+    })();
 
     const unitManager = (() => {
 
@@ -156,8 +156,16 @@ function main() {
                         unit.deactivate();
                     }
                 }
+
+                const despawnAllUnits = (grid = defaultGrid) => {
+                    for (let x = 0; x < grid.getWidth(); x++) {
+                        for (let y = 0; y < grid.getHeight(); y++) {
+                            despawnUnit(x, y, grid);
+                        }
+                    }
+                }
                 
-                return {spawnUnit, despawnUnit}
+                return {spawnUnit, despawnUnit, despawnAllUnits}
             }
             unitPoolList[typeName] = createUnitPool();
         }
@@ -173,7 +181,7 @@ function main() {
         }
 
         return {createUnitType, getPool, moveUnit};
-    })();//
+    })();
 
     const playerManager = (() => {
        let playerList = {};
@@ -218,278 +226,34 @@ function main() {
     })();
 
     const gameController = (() => {
-        /*
-            _
-        */
-    })();
-
-    const gameManager = (() => {
-        /*
-            Game states: start menu, game in progress, endgame state
-
-            ___startGame___
-            -Receives a function and an infinity number of players
-            -changes state to game in progress
-            -executes game function with players that are going to play.
-            ___startRound___
-        */
-    })();
-
-    const tictac = {
-        symbol: null,
-
-        getSymbol: function () {return this.symbol;},
-
-        setSymbol: function (newSymbol) {this.symbol = newSymbol;},
-    }
-    playerManager.addPlayer("pxp", "player1", tictac);
-    playerManager.addPlayer("pop", "player2", tictac);
-    playerManager.addPlayer("pup", "player3", tictac);
-
-    const players = playerManager.getPlayers(["pxp", "pop"]);
-
-    players[0].setSymbol("x");
-
-    console.log(players[0].getName(), players[0].getSymbol(), players[0].getFaction());
-    console.log(players[1].getName(), players[1].getSymbol(), players[1].getFaction());
-}
-/*
-    function createEntity (id, type, gridPropertyType = null, pos = null) {
-
-        const changePos = (newPos, property) => {
-            pos = newPos;
-            if (pos !== null) {
-                board.emptyCellProperty(pos, property);
-            }
-            board.fillCellProperty(pos, gridPropertyType || property, type + id);
-        }
-
-        const getName = () => {
-            return gridPropertyType + id;
-        }
-
-        const getType = () => {
-            return type;
-        }
-
-        const getPos = () => {
-            return pos;
-        }
-
-        const resetPos = () => {
-            pos = null;
-        }
-        return {changePos, getName, getType, getPos, resetPos};
-    }
-
-    function createFaction (name) {
-        let unitList = {};
-
-        const getName = () => {
-            return name; 
-        }
-
-        const addUnitType = (type) => {
-            unitList[type] = []; 
-        }
-
-        const addUnits = (type, gridProperty, number = 1) => {
-            for (let i = 0; i < number; i++) {
-                unitList[type].push(createEntity(unitList[type].length+1, type, gridProperty)); 
-            }
-        }
-
-        const getUnit = (type, number = 1) => {
-            return unitList[type][number-1];
-        }
-
-        const getNextUnit = (type) => {
-            for (let i = 0; i < unitList[type].length; i++) {
-                if (unitList[type][i].getPos() === null) {
-                    return unitList[type][i];
-                }
-            }
-        }
-
-        const resetAllUnits = (type) => {
-            for (let i = 0; i < unitList[type].length; i++) {
-                if (unitList[type][i].getPos() !== null) {
-                    board.emptyCellProperty(unitList[type][i].getPos());
-                    unitList[type][i].resetPos();
-                }
-            }
-        }
-
-        return {getName, addUnitType, addUnits, getUnit, getNextUnit, resetAllUnits};
-    }
-
-    function createPlayer (name, faction) {
-        let score = 0;
-
-        const getName = () => {
-            return name; 
-        }
-
-        const getFactionName = () => {
-            return faction; 
-        }
-
-        const increaseScore = () => {
-            score += 1;
-        }
-
-        const resetScore = () => {
-            score = 0;
-        }
-
-        const getScore = () => {
-            return score;
-        }
-
-        return {getName, getFactionName, increaseScore, resetScore, getScore};
-    }
-
-    const factionManager = (() => {
-        let factionList = {};
-
-        const addFaction = (name) => {
-            factionList[name] = createFaction(name);
-            return factionList[name];
-        }
-
-        const getFaction = (name) => {
-            return factionList[name];
-        }
-        
-        return {addFaction, getFaction};
-    })();
-
-    const playerManager = (() => {
-        let players = [];
-
-        const addPlayer = (name, faction) => {
-            if(getPlayerByName(name) == undefined) {
-                const player = createPlayer(name, faction)
-                players.push(player);
-            }
-        }
-
-        const getPlayerByName = (name) => {
-            return players.find((player) => {
-                return player.getName() == name;
-            });
-        }
-
-        const getPlayerById = (id) => {
-            return players[id];
-        }
-
-        return {addPlayer, getPlayerByName, getPlayerById};
-    })();
-
-    const consoleRender = (() => {
-
-        const showGrid = (board, property) => {
-            let visualGrid = "";
-            for (let x = 0; x < board.getGrid().length; x++) {
-                x !== 0 ? visualGrid += "\n" : false;
-                for (let y = 0; y < board.getGrid()[0].length; y++) {
-                    if (board.getCellProperty(x, y, property) instanceof createEntity) {
-                        visualGrid += `[${board.getCellProperty(x, y, property).getName()}]`;
-                    }
-                    visualGrid += `[${board.getCellProperty(x, y, property)}]`;
-                }
-            }
-            console.log(visualGrid);
-        }
-
-        return {showGrid};
-    })();
-
-    const board = ((rows, columns) => {
-        let grid = [];
-
-        const resizeGrid = (rows, columns) => {
-            this.rows = rows;
-            this.columns = columns;
-        }
-
-        const createGrid = () => {
-            for (let x = 0; x < rows; x++) {
-                grid[x] = [];
-                for (let y = 0; y < columns; y++) {
-                    grid[x][y] = {};
-                }
-            }
-        }
-
-        const getGrid = () => {
-            return grid;
-        }
-
-        const addGridProperty = (property) => {
-            for (let x = 0; x < rows; x++) {
-                for (let y = 0; y < columns; y++) {
-                    grid[x][y][property] = null;
-                }
-            }
-        }
-
-        const resetGridProperty = (property) => {
-            for (let x = 0; x < rows; x++) {
-                for (let y = 0; y < columns; y++) {
-                    grid[x][y][property] = null;
-                }
-            }
-        }
-
-        const getCell = (x, y) => {
-            return grid[x][y];
-        }
-
-        const getCellProperty = (x, y, property) => {
-            return grid[x][y][property];
-        }
-
-        const fillCellProperty = (pos, property, value) => {
-            grid[pos[0]][pos[1]][property] = value;
-        }
-
-        const emptyCellProperty = (pos, property) => {
-            grid[pos[0]][pos[1]][property] = null;
-        }
-
-        createGrid(rows, columns);
-        return {getGrid, addGridProperty, resetGridProperty, getCellProperty, fillCellProperty, emptyCellProperty};
-    })(3, 3);
-
-    const gameController = (() => {
-
+        let players = null;
+        let activePlayerIndex = 0;
         let activePlayer = null;
 
-        const registerInput = (e) => {
-            gameManager.startRound(e);
+        const setPlayers = (newPlayers) => {
+            players = newPlayers;
         }
 
         const getActivePlayer = () => {
             return activePlayer;
         }
 
-        const setActivePlayer = (player) => {
-            activePlayer = player;
+        const progressTurn = () => {
+            if (activePlayer.getTurnNumber() === 0) {
+                if (players[players.length-1] === activePlayer) {
+                    activePlayer = players[0];
+                    activePlayerIndex = 0;
+                } else {
+                    activePlayerIndex++;
+                    activePlayer = players[activePlayerIndex];
+                }
+            } else {
+                activePlayer.setTurnNumber(getTurnNumber()-1);
+            }
         }
 
-        const definePlayers = () => {
-            //Not modular design
-            if (p1Name.value != "" && p2Name.value != "" && p1Symbol.value != "" && p2Symbol.value != "") {
-                playerManager.addPlayer(p1Name.value, p1Symbol.value);
-                playerManager.addPlayer(p2Name.value, p2Symbol.value);
-                
-                activePlayer = playerManager.getPlayerByName(p1Name.value);
-                gameManager.startGame(3);
-            } else {
-                console.log("No");
-            }
+        const registerInput = (e) => {
+            gameManager.startRound(e);
         }
 
         //Not modular design
@@ -497,40 +261,64 @@ function main() {
         const p2Name = document.getElementById("p2Name");
         const p1Symbol = document.getElementById("p1Symbol");
         const p2Symbol = document.getElementById("p2Symbol");
+        const newGameBtn = document.getElementById("newGameBtn");
         const playBtn = document.getElementById("playBtn");
         playBtn.addEventListener("click", definePlayers, false);
 
-        const domCells = Array.from(document.querySelectorAll("section button"));
+        const domCells = Array.from(document.querySelectorAll(".boardGrid button"));
         domCells.map((cell) => {cell.addEventListener("click", registerInput, false)});
 
-        return {getActivePlayer, setActivePlayer};
+        return {setPlayers, getActivePlayer, progressTurn};
+    })();
+
+    const gameManager = (() => {
+        let gameState = "startMenu";
+        let rounds = 0;
+        let gameFunction = null;
+
+        const getGameState = () => {
+            return gameState;
+        }
+
+        const setGameState = (newGameState) => {
+            gameState = newGameState;
+        }
+        
+        const startGame = (gameStartFunction, players, newRounds = 1) => {
+            rounds = newRounds;
+            gameState = "gameInProgress";
+            gameFunction = gameStartFunction(players);
+        }
+
+        const startTurn = (activePlayer) => {
+            let roundState = null;
+            if (gameFunction()) {
+                roundState = gameController.progressTurn();
+            }
+            if (roundState === "end") {
+                if (rounds <= 0) {
+                    endGame();
+                } else {
+                    startRound();
+                }
+            }
+        }
+
+        const startRound = () => {
+            roundState
+        }
+
+        const endGame = () => {
+
+        }
+
+        return {getGameState, setGameState, startGame, startTurn};
     })();
 
     const ticTacToeManager = (() => {
-        boardProperty = "ticTacToe"
-        board.addGridProperty(boardProperty);
+        const grid = boardManager.createGrid("tictactoe", 3, 3);
         let turnsLeft = 9;
 
-        const resetRound = () => {
-            turnsLeft = 9;
-            board.resetGridProperty(boardProperty);
-            factionManager.getFaction(playerManager.getPlayerById(0).getFactionName()).resetAllUnits(playerManager.getPlayerById(0).getFactionName());
-            factionManager.getFaction(playerManager.getPlayerById(1).getFactionName()).resetAllUnits(playerManager.getPlayerById(1).getFactionName());
-        }
-
-        const startTicTacToeGame = (player1, player2) => {
-            player1Faction = factionManager.addFaction(player1.getFactionName());
-            player2Faction = factionManager.addFaction(player2.getFactionName());
-        
-            player1Faction.addUnitType(player1.getFactionName());
-            player2Faction.addUnitType(player2.getFactionName());
-
-            player1Faction.addUnits(player1.getFactionName(), boardProperty, 5);
-            player2Faction.addUnits(player2.getFactionName(), boardProperty, 5);
-        }
-
-        const victoryCheck = () => {
-        
         const victoryCheck = (pos) => {
             const x = pos[0];
             const y = pos[1];
@@ -590,8 +378,24 @@ function main() {
             }
 
             return false;
+        }
 
-           return true;
+        const resetRound = () => {
+            turnsLeft = 9;
+            grid.fillGrid(null);
+            factionManager.getFaction(playerManager.getPlayerById(0).getFactionName()).resetAllUnits(playerManager.getPlayerById(0).getFactionName());
+            factionManager.getFaction(playerManager.getPlayerById(1).getFactionName()).resetAllUnits(playerManager.getPlayerById(1).getFactionName());
+        }
+
+        const startTicTacToeGame = (players) => {
+            player1Faction = factionManager.addFaction(player1.getFactionName());
+            player2Faction = factionManager.addFaction(player2.getFactionName());
+        
+            player1Faction.addUnitType(player1.getFactionName());
+            player2Faction.addUnitType(player2.getFactionName());
+
+            player1Faction.addUnits(player1.getFactionName(), boardProperty, 5);
+            player2Faction.addUnits(player2.getFactionName(), boardProperty, 5);
         }
 
         const resolveTurn = (e) => {
@@ -636,54 +440,4 @@ function main() {
         return {startTicTacToeGame, resolveTurn};
     })();
 
-    const gameManager = (() => {
-        let gameInProgress = false;
-        let roundLeft = 0;
-
-        const game = () => {
-            //Not modular design
-            ticTacToeManager.startTicTacToeGame(playerManager.getPlayerById(0), playerManager.getPlayerById(1));  
-        }
-        
-        const resolveTurn = (e) => {
-            //Not modular design
-            return ticTacToeManager.resolveTurn(e);
-        }
-
-        const startGame = (roundNum) => {
-            gameInProgress = true;
-            roundLeft = roundNum;
-            game();
-        }
-
-        const startRound = (e) => {
-            if (gameInProgress) {
-                if (resolveTurn(e)) {
-                    roundLeft--;
-                    console.log(roundLeft);
-
-                    if (roundLeft <= 0) {
-                        endGame();
-                    }
-                }
-            } else {
-                console.log("No game in progress");
-            }
-        }
-
-        const endGame = () => {
-            gameInProgress = false;
-            if (playerManager.getPlayerById(0).getScore() > playerManager.getPlayerById(1).getScore()) {
-                console.log(playerManager.getPlayerById(0).getName(), "Wins the Game!")
-            } else if (playerManager.getPlayerById(0).getScore() < playerManager.getPlayerById(1).getScore()) {
-                console.log(playerManager.getPlayerById(1).getName(), "Wins the Game!")
-            } else {
-                console.log("The game ends with tables!")
-            }
-            playerManager.getPlayerById(0).resetScore();
-            playerManager.getPlayerById(1).resetScore();
-        }
-
-        return {startGame, startRound};
-    })();
-    */
+}
