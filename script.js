@@ -363,7 +363,7 @@ function main() {
         const startTicTacToeGame = () => {
             dialog.close();
             definePlayers();
-            gameManager.startGame();
+            gameManager.startGame(3);
             //htmlRenderer.renderGrid(grid);
         }
 
@@ -437,14 +437,16 @@ function main() {
                     //Render html turn win
                     //Render console turn win
                     activePlayer.increaseScore();
-                    console.log(activePlayer.getScore())
+                    console.log(activePlayer.getName(), activePlayer.getScore())
                     //endRound -> grid resets & roundNum--
+                    resetRound();
                 };
 
                 if (turnsLeft === 0) {
                     //Render html turn win
                     //Render console turn win
                     //endRound -> grid resets & roundNum--
+                    resetRound();
                 }
 
                 gameController.progressTurn();
