@@ -21,7 +21,27 @@ function main() {
             console.log(visualGrid);
         }
 
-        return {showGrid};
+        const showTurn = (turn) => {
+            console.log(`Turn ${turn}`);
+        }
+
+        const showActivePlayer = (activePlayerName) => {
+            console.log(`${activePlayerName}'s Turn!`);
+        }
+
+        const showTurnWinner = (winnerName) => {
+            console.log(`Turn won by ${winnerName}!`);
+        }
+
+        const showWinner = (winnerName) => {
+            console.log(`The Winner is ${winnerName}!`);
+        }
+
+        const showPlayersScore = (players) => {
+            console.log(`${players[0].getName()}'s score: ${players[0].getScore()}\n${players[1].getName()}'s score: ${players[1].getScore()}`);
+        }
+
+        return {showGrid, showTurn, showActivePlayer, showTurnWinner, showWinner, showPlayersScore};
     })();
 
     const htmlRenderer = (() => {
@@ -245,6 +265,10 @@ function main() {
             players = newPlayers;
         }
 
+        const getPlayers = () => {
+            return players;
+        }
+
         const getActivePlayer = () => {
             return activePlayer;
         }
@@ -267,10 +291,15 @@ function main() {
             }
         }
 
-        return {setPlayers, getActivePlayer, setActivePlayer, progressTurn};
+        return {setPlayers, getPlayers, getActivePlayer, setActivePlayer, progressTurn};
     })();
 
     const gameManager = (() => {
+        const gameStateList = [
+            "startMenu",
+            "roundInProgress",
+            "endGame"
+        ]
         let gameState = "startMenu";
         let rounds = 0;
 
@@ -364,6 +393,8 @@ function main() {
             dialog.close();
             definePlayers();
             gameManager.startGame(3);
+            consoleRenderer.showTurn(turnsLeft);
+            consoleRenderer.showActivePlayer(gameController.getActivePlayer().getName());
             //htmlRenderer.renderGrid(grid);
         }
 
@@ -435,21 +466,23 @@ function main() {
 
                 if (victoryCheck(x, y)) {
                     //Render html turn win
-                    //Render console turn win
+                    consoleRenderer.showTurnWinner(activePlayer.getName());
                     activePlayer.increaseScore();
-                    console.log(activePlayer.getName(), activePlayer.getScore())
+                    consoleRenderer.showPlayersScore(gameController.getPlayers());
                     //endRound -> grid resets & roundNum--
                     resetRound();
                 };
 
                 if (turnsLeft === 0) {
                     //Render html turn win
-                    //Render console turn win
+                    consoleRenderer.showTurnWinner("no one");
                     //endRound -> grid resets & roundNum--
                     resetRound();
                 }
 
                 gameController.progressTurn();
+                consoleRenderer.showTurn(turnsLeft);
+                consoleRenderer.showActivePlayer(gameController.getActivePlayer().getName());
             } else {
                 //Show Error
             }
