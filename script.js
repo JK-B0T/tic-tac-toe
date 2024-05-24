@@ -49,9 +49,43 @@ function main() {
     })();
 
     const htmlRenderer = (() => {
-        /*
-            
-        */
+        
+        const renderGrid = (grid, wrapper) => {
+            let cell;
+            const container = document.createElement("div");
+            container.setAttribute("class", "gridBoardContainer");
+
+            for (let x = 0; x < grid.getHeight(); x++) {
+                for (let y = 0; y < grid.getWidth(); y++) {
+                    cell = document.createElement("button");
+                    cell.setAttribute("type", "button");
+                    cell.setAttribute("id", `${x}`+ `${y}`);
+                    cell.setAttribute("class", "gridCell");
+                    container.appendChild(cell);
+                }
+            }
+
+            wrapper.appendChild(container);
+        }
+
+        const updateGrid = (grid) => {
+            let cell;
+            let htmlCell;
+
+            for (let x = 0; x < grid.getHeight(); x++) {
+                for (let y = 0; y < grid.getWidth(); y++) {
+                    cell = grid.getCell(x, y);
+                    htmlCell = document.getElementById(`${x}`+ `${y}`);
+                    if (cell !== null) {
+                        htmlCell.textContent = cell.getType();
+                    } else {
+                        htmlCell.textContent = "";
+                    }
+                }
+            }
+        }
+
+        return {renderGrid, updateGrid};
     })();
 
     const boardManager = (() => {
@@ -341,7 +375,10 @@ function main() {
         const dialog = document.querySelector("dialog");
         const newGameBtn = document.getElementById("newGameBtn");
         const playBtn = document.getElementById("playBtn");
-        const domCells = Array.from(document.querySelectorAll(".boardGrid button"));
+        const boardContainer = document.querySelector("section");
+
+        htmlRenderer.renderGrid(grid, boardContainer);
+        const domCells = Array.from(document.querySelectorAll(".gridBoardContainer button"));
 
         const definePlayers = () => {
             const p1Name = document.getElementById("p1Name").value;
@@ -449,7 +486,7 @@ function main() {
                     const activePlayer = gameController.getActivePlayer();
                     const pool = unitManager.getPool(activePlayer.getSymbol());
                     pool.spawnUnit(x, y);
-                    //Render html grid
+                    htmlRenderer.updateGrid(grid);
                     consoleRenderer.showGrid(grid);
                     turnsLeft--;
     
@@ -497,6 +534,7 @@ function main() {
             if (gameManager.getGameState() === "gameInProgress") {
                 consoleRenderer.showRound(rounds);
             }
+            setTimeout(() => htmlRenderer.updateGrid(grid), 2000) ;
         }
 
         const endGame = () => {
@@ -520,5 +558,4 @@ function main() {
         domCells.map((cell) => {cell.addEventListener("click", resolveTurn, false)});
         return {startTicTacToeGame, resolveTurn};
     })();
-
 }
