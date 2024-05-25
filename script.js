@@ -85,7 +85,11 @@ function main() {
             }
         }
 
-        return {renderGrid, updateGrid};
+        const toggleElement = (element) => {
+            element.classList.toggle("hidden");
+        }
+
+        return {renderGrid, updateGrid, toggleElement};
     })();
 
     const boardManager = (() => {
@@ -313,6 +317,7 @@ function main() {
 
         const setActivePlayer = (newPlayer) => {
             activePlayer = newPlayer;
+            activePlayerIndex = players.indexOf(activePlayer);
         }
 
         const progressTurn = () => {
@@ -350,8 +355,8 @@ function main() {
             }
         }
 
-        const setGameStates = (newgameStateList) => {
-            gameStateList = newgameStateList;
+        const setGameStates = (newGameStateList) => {
+            gameStateList = newGameStateList;
         }
 
 
@@ -362,7 +367,7 @@ function main() {
         boardManager.createGrid("tictactoe", 3, 3);
         const grid = boardManager.getGrid("tictactoe");
         let turnsLeft = 9;
-        let maxrounds = 3;
+        let maxRounds = 3;
         let rounds = 1;
         let pool1 = null;
         let pool2 = null;
@@ -496,7 +501,7 @@ function main() {
                         activePlayer.increaseScore();
                         consoleRenderer.showPlayersScore(gameController.getPlayers());
                         
-                        if (rounds >= maxrounds) {
+                        if (rounds >= maxRounds) {
                             endGame();
                         } else {
                             resetRound();
@@ -505,7 +510,7 @@ function main() {
                         //Render html turn win
                         consoleRenderer.showTurnWinner("no one");
                         
-                        if (rounds >= maxrounds) {
+                        if (rounds >= maxRounds) {
                             endGame();
                         } else {
                             resetRound();
@@ -551,6 +556,17 @@ function main() {
             players[1].resetScore();
             resetRound();
             rounds = 1;
+            //htmlRenderer.toggleElement(newGameBtn);
+        }
+
+        const startCheck = () => {
+            if (placeholder) {
+                //Show required camps message
+            } else {
+                startTicTacToeGame();
+                dialog.showModal();
+                htmlRenderer.toggleElement(newGameBtn);
+            }
         }
 
         playBtn.addEventListener("click", startTicTacToeGame, false);
