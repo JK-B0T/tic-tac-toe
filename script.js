@@ -244,8 +244,8 @@ function main() {
             unitPoolList[typeName] = createUnitPool();
         }
 
-        const getPool = (poolname) => {
-            return unitPoolList[poolname];
+        const getPool = (poolName) => {
+            return unitPoolList[poolName];
         }
 
         const hasUnitType = (typeName) => {
