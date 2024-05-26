@@ -89,7 +89,19 @@ function main() {
             element.classList.toggle("hidden");
         }
 
-        return {renderGrid, updateGrid, toggleElement};
+        const showSpan = (element, text, time = 0) => {
+            element.textContent = text;
+            toggleElement(element);
+            if (time !== 0) {
+                setTimeout(() => toggleElement(element), time);
+            }
+        }
+
+        const setSpan = (element, text) => {
+            element.textContent = text;
+        }
+
+        return {renderGrid, updateGrid, toggleElement, showSpan, setSpan};
     })();
 
     const boardManager = (() => {
@@ -364,68 +376,39 @@ function main() {
     })();
 
     const ticTacToeManager = (() => {
+        //This IIFE could be divided much more cleanly, refactoring is advised.
         boardManager.createGrid("tictactoe", 3, 3);
         const grid = boardManager.getGrid("tictactoe");
-        let turnsLeft = 9;
+        let turns = 1;
+        let maxTurns = 9;
         let maxRounds = 3;
         let rounds = 1;
         let pool1 = null;
         let pool2 = null;
         const playerProperties = {
             symbol: null,
-            getSymbol: function () {return this.symbol},
-            setSymbol: function (newSymbol) {this.symbol = newSymbol},
+            getSymbol: function () {return this.symbol;},
+            setSymbol: function (newSymbol) {this.symbol = newSymbol;},
         }
 
         const dialog = document.querySelector("dialog");
         const newGameBtn = document.getElementById("newGameBtn");
         const playBtn = document.getElementById("playBtn");
         const boardContainer = document.querySelector("section");
+        const turnSpan = document.getElementById("turnSpan");
+        const scoreSpan = document.getElementById("scoreSpan");
+        const winnerSpan = document.getElementById("winnerSpan");
 
         htmlRenderer.renderGrid(grid, boardContainer);
         const domCells = Array.from(document.querySelectorAll(".gridBoardContainer button"));
 
-        const definePlayers = () => {
-            const p1Name = document.getElementById("p1Name").value;
-            const p2Name = document.getElementById("p2Name").value;
-            const p1Symbol = document.getElementById("p1Symbol").value;
-            const p2Symbol = document.getElementById("p2Symbol").value;
-
-            if (!playerManager.hasPlayer(p1Name)) {
-                playerManager.addPlayer(p1Name, null, playerProperties);
-            }
-            if (!playerManager.hasPlayer(p2Name)) {
-                playerManager.addPlayer(p2Name, null, playerProperties);
-            }
-            players = playerManager.getPlayers([p1Name, p2Name]);
-            
-            players[0].setSymbol(p1Symbol);
-            players[1].setSymbol(p2Symbol);
-            players[0].setFaction("Player1");
-            players[1].setFaction("Player2");
-
-            if (!unitManager.hasUnitType(p1Symbol)) {
-                unitManager.createUnitType(p1Symbol, grid, 5);
-            } 
-            if (!unitManager.hasUnitType(p2Symbol)) {
-                unitManager.createUnitType(p2Symbol, grid, 5);
-            } 
-
-            pool1 = unitManager.getPool(p1Symbol);
-            pool2 = unitManager.getPool(p2Symbol);
-            gameController.setPlayers(players);
-            gameController.setActivePlayer(players[0]);
-        }
-
         const startTicTacToeGame = () => {
-            dialog.close();
-            definePlayers();
             gameManager.updateGameState("gameInProgress");
 
             consoleRenderer.showRound(rounds);
-            consoleRenderer.showTurn(turnsLeft);
+            consoleRenderer.showTurn(turns);
             consoleRenderer.showActivePlayer(gameController.getActivePlayer().getName());
-            //htmlRenderer.renderGrid(grid);
+            htmlRenderer.showSpan(turnSpan, `Turn ${turns}: ${gameController.getActivePlayer().getName()} (${gameController.getActivePlayer().getSymbol()})`);
         }
 
         const victoryCheck = (x, y) => {
@@ -493,10 +476,11 @@ function main() {
                     pool.spawnUnit(x, y);
                     htmlRenderer.updateGrid(grid);
                     consoleRenderer.showGrid(grid);
-                    turnsLeft--;
+                    turns++;
     
                     if (victoryCheck(x, y)) {
-                        //Render html turn win
+                        htmlRenderer.showSpan(winnerSpan, `Turn won by ${activePlayer.getName()}!`, 5000);
+                        htmlRenderer.showSpan(scoreSpan,`${players[0].getName()}'s score: ${players[0].getScore()} VS ${players[1].getName()}'s score: ${players[1].getScore()}`, 2000);
                         consoleRenderer.showTurnWinner(activePlayer.getName());
                         activePlayer.increaseScore();
                         consoleRenderer.showPlayersScore(gameController.getPlayers());
@@ -506,8 +490,9 @@ function main() {
                         } else {
                             resetRound();
                         }
-                    } else if (turnsLeft === 0) {
-                        //Render html turn win
+                    } else if (turns > maxTurns) {
+                        htmlRenderer.showSpan(winnerSpan, `Turn won by no one!`, 4000);
+                        htmlRenderer.showSpan(scoreSpan,`${players[0].getName()}'s score: ${players[0].getScore()} VS ${players[1].getName()}'s score: ${players[1].getScore()}`, 2000);
                         consoleRenderer.showTurnWinner("no one");
                         
                         if (rounds >= maxRounds) {
@@ -519,11 +504,15 @@ function main() {
                     
                     if (gameManager.getGameState() === "gameInProgress") {
                         gameController.progressTurn();
-                        consoleRenderer.showTurn(turnsLeft);
+                        consoleRenderer.showTurn(turns);
+                        htmlRenderer.setSpan(turnSpan, `Turn ${turns}: ${gameController.getActivePlayer().getName()} (${gameController.getActivePlayer().getSymbol()})`);
                         consoleRenderer.showActivePlayer(gameController.getActivePlayer().getName());
                     }
                 } else {
-                    //Show Error
+                    //Rudimentary Animation
+                    const cellStyle = document.getElementById(`${x}${y}`).style;
+                    cellStyle.border = "2px solid red";
+                    setTimeout(() => {cellStyle.border = "1px solid rgb(103, 103, 103)"}, 2000);
                 }
             } else {
                 console.log("Game is not in progress");
@@ -531,7 +520,7 @@ function main() {
         }
 
         const resetRound = () => {
-            turnsLeft = 9;
+            turns = 1;
             grid.fillGrid(null);
             pool1.despawnAllUnits(grid);
             pool2.despawnAllUnits(grid);
@@ -547,29 +536,78 @@ function main() {
             players = gameController.getPlayers();
             if (players[0].getScore() > players[1].getScore()) {
                 consoleRenderer.showWinner(players[0].getName());
+                htmlRenderer.showSpan(winnerSpan, `The winner is ${players[0].getName()}!`, 5000);
             } else if (players[0].getScore() < players[1].getScore()) {
                 consoleRenderer.showWinner(players[1].getName());
+                htmlRenderer.showSpan(winnerSpan, `The winner is ${players[1].getName()}!`, 5000);
             } else {
                 consoleRenderer.showWinner("no one");
+                htmlRenderer.showSpan(winnerSpan, `The winner is no one!`, 5000);
             }
             players[0].resetScore();
             players[1].resetScore();
             resetRound();
             rounds = 1;
-            //htmlRenderer.toggleElement(newGameBtn);
+            htmlRenderer.toggleElement(turnSpan);
+            htmlRenderer.toggleElement(newGameBtn);
         }
 
-        const startCheck = () => {
-            if (placeholder) {
-                //Show required camps message
-            } else {
+        const definePlayers = (p1Name, p2Name, p1Symbol, p2Symbol) => {
+            if (!playerManager.hasPlayer(p1Name)) {
+                playerManager.addPlayer(p1Name, null, playerProperties);
+            }
+            if (!playerManager.hasPlayer(p2Name)) {
+                playerManager.addPlayer(p2Name, null, playerProperties);
+            }
+            players = playerManager.getPlayers([p1Name, p2Name]);
+            
+            players[0].setSymbol(p1Symbol);
+            players[1].setSymbol(p2Symbol);
+            players[0].setFaction("Player1");
+            players[1].setFaction("Player2");
+
+            if (!unitManager.hasUnitType(p1Symbol)) {
+                unitManager.createUnitType(p1Symbol, grid, 5);
+            } 
+            if (!unitManager.hasUnitType(p2Symbol)) {
+                unitManager.createUnitType(p2Symbol, grid, 5);
+            } 
+
+            pool1 = unitManager.getPool(p1Symbol);
+            pool2 = unitManager.getPool(p2Symbol);
+            gameController.setPlayers(players);
+            gameController.setActivePlayer(players[0]);
+        }
+
+        const checkValidation = (...args) => {
+            return args.reduce((check, input) => {
+                console.log(check, input.checkValidity())
+                if (input.checkValidity() && check) {
+                    return true
+                } else {
+                    return false;
+                }
+            }, true);
+        }
+
+
+        const confirmGame = (e) => {
+            e.preventDefault();
+
+            const p1Name = document.getElementById("p1Name");
+            const p2Name = document.getElementById("p2Name");
+            const p1Symbol = document.getElementById("p1Symbol");
+            const p2Symbol = document.getElementById("p2Symbol");
+
+            if (checkValidation(p1Name, p2Name, p1Symbol, p2Symbol)) {
+                definePlayers(p1Name.value, p2Name.value, p1Symbol.value, p2Symbol.value);
                 startTicTacToeGame();
-                dialog.showModal();
+                dialog.close();
                 htmlRenderer.toggleElement(newGameBtn);
             }
         }
 
-        playBtn.addEventListener("click", startTicTacToeGame, false);
+        playBtn.addEventListener("click", confirmGame, false);
         newGameBtn.addEventListener("click", () => {dialog.showModal()}, false);
         domCells.map((cell) => {cell.addEventListener("click", resolveTurn, false)});
         return {startTicTacToeGame, resolveTurn};
