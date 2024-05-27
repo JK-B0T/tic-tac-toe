@@ -89,19 +89,20 @@ function main() {
             element.classList.toggle("hidden");
         }
 
-        const showSpan = (element, text, time = 0) => {
+        const showElement = (element, text) => {
             element.textContent = text;
-            toggleElement(element);
-            if (time !== 0) {
-                setTimeout(() => toggleElement(element), time);
+            if (element.classList.contains("hidden")) {
+                toggleElement(element);
             }
         }
 
-        const setSpan = (element, text) => {
-            element.textContent = text;
+        const hideElement = (element) => {
+            if (!element.classList.contains("hidden")) {
+                toggleElement(element);
+            }
         }
 
-        return {renderGrid, updateGrid, toggleElement, showSpan, setSpan};
+        return {renderGrid, updateGrid, toggleElement, showElement, hideElement};
     })();
 
     const boardManager = (() => {
@@ -398,7 +399,6 @@ function main() {
         const boardContainer = document.querySelector("section");
         const turnSpan = document.getElementById("turnSpan");
         const scoreSpan = document.getElementById("scoreSpan");
-        const winnerSpan = document.getElementById("winnerSpan");
 
         htmlRenderer.renderGrid(grid, boardContainer);
         const domCells = Array.from(document.querySelectorAll(".gridBoardContainer button"));
@@ -409,7 +409,8 @@ function main() {
             consoleRenderer.showRound(rounds);
             consoleRenderer.showTurn(turns);
             consoleRenderer.showActivePlayer(gameController.getActivePlayer().getName());
-            htmlRenderer.showSpan(turnSpan, `Turn ${turns}: ${gameController.getActivePlayer().getName()} (${gameController.getActivePlayer().getSymbol()})`);
+            htmlRenderer.showElement(turnSpan, `Turn ${turns}: ${gameController.getActivePlayer().getName()} (${gameController.getActivePlayer().getSymbol()})`);
+            htmlRenderer.hideElement(scoreSpan);
         }
 
         const victoryCheck = (x, y) => {
@@ -480,10 +481,10 @@ function main() {
                     turns++;
     
                     if (victoryCheck(x, y)) {
-                        htmlRenderer.showSpan(winnerSpan, `Turn won by ${activePlayer.getName()}!`, 5000);
-                        htmlRenderer.showSpan(scoreSpan,`${players[0].getName()}'s score: ${players[0].getScore()} VS ${players[1].getName()}'s score: ${players[1].getScore()}`, 4000);
-                        consoleRenderer.showTurnWinner(activePlayer.getName());
+                        htmlRenderer.showElement(turnSpan, `Turn won by ${activePlayer.getName()}!`);
                         activePlayer.increaseScore();
+                        htmlRenderer.showElement(scoreSpan,`${players[0].getName()}: ${players[0].getScore()} VS ${players[1].getName()}: ${players[1].getScore()}`);
+                        consoleRenderer.showTurnWinner(activePlayer.getName());
                         consoleRenderer.showPlayersScore(gameController.getPlayers());
                         
                         if (rounds >= maxRounds) {
@@ -492,8 +493,8 @@ function main() {
                             resetRound();
                         }
                     } else if (turns > maxTurns) {
-                        htmlRenderer.showSpan(winnerSpan, `Turn won by no one!`, 4000);
-                        htmlRenderer.showSpan(scoreSpan,`${players[0].getName()}'s score: ${players[0].getScore()} VS ${players[1].getName()}'s score: ${players[1].getScore()}`, 2000);
+                        htmlRenderer.showElement(turnSpan, `Turn won by no one!`);
+                        htmlRenderer.showElement(scoreSpan,`${players[0].getName()}: ${players[0].getScore()} VS ${players[1].getName()}: ${players[1].getScore()}`);
                         consoleRenderer.showTurnWinner("no one");
                         
                         if (rounds >= maxRounds) {
@@ -506,7 +507,7 @@ function main() {
                     if (gameManager.getGameState() === "gameInProgress") {
                         gameController.progressTurn();
                         consoleRenderer.showTurn(turns);
-                        htmlRenderer.setSpan(turnSpan, `Turn ${turns}: ${gameController.getActivePlayer().getName()} (${gameController.getActivePlayer().getSymbol()})`);
+                        htmlRenderer.showElement(turnSpan, `Turn ${turns}: ${gameController.getActivePlayer().getName()} (${gameController.getActivePlayer().getSymbol()})`);
                         consoleRenderer.showActivePlayer(gameController.getActivePlayer().getName());
                     }
                 } else {
@@ -537,19 +538,19 @@ function main() {
             players = gameController.getPlayers();
             if (players[0].getScore() > players[1].getScore()) {
                 consoleRenderer.showWinner(players[0].getName());
-                htmlRenderer.showSpan(winnerSpan, `The winner is ${players[0].getName()}!`, 5000);
+                htmlRenderer.showElement(scoreSpan, `The winner is ${players[0].getName()}!`);
             } else if (players[0].getScore() < players[1].getScore()) {
                 consoleRenderer.showWinner(players[1].getName());
-                htmlRenderer.showSpan(winnerSpan, `The winner is ${players[1].getName()}!`, 5000);
+                htmlRenderer.showElement(scoreSpan, `The winner is ${players[1].getName()}!`);
             } else {
                 consoleRenderer.showWinner("no one");
-                htmlRenderer.showSpan(winnerSpan, `The winner is no one!`, 5000);
+                htmlRenderer.showElement(scoreSpan, `The winner is no one!`);
             }
             players[0].resetScore();
             players[1].resetScore();
             resetRound();
             rounds = 1;
-            htmlRenderer.toggleElement(turnSpan);
+            htmlRenderer.hideElement(turnSpan);
             htmlRenderer.toggleElement(newGameBtn);
         }
 
@@ -582,9 +583,8 @@ function main() {
 
         const checkValidation = (...args) => {
             return args.reduce((check, input) => {
-                console.log(check, input.checkValidity())
                 if (input.checkValidity() && check) {
-                    return true
+                    return true;
                 } else {
                     return false;
                 }
