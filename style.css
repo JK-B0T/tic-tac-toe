@@ -99,3 +99,11 @@ header {
     display: grid;
     grid-template-rows: repeat(4, auto);
 }
+
+header span{
+    font-size: 3rem;
+}
+
+#scoreSpan{
+    font-size: 2rem;
+}

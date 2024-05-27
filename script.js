@@ -350,6 +350,7 @@ function main() {
     })();
 
     const gameManager = (() => {
+        //Game manager not that useful with how the game flow works.
         const gameStateList = [
             "startMenu",
             "gameInProgress",
@@ -480,7 +481,7 @@ function main() {
     
                     if (victoryCheck(x, y)) {
                         htmlRenderer.showSpan(winnerSpan, `Turn won by ${activePlayer.getName()}!`, 5000);
-                        htmlRenderer.showSpan(scoreSpan,`${players[0].getName()}'s score: ${players[0].getScore()} VS ${players[1].getName()}'s score: ${players[1].getScore()}`, 2000);
+                        htmlRenderer.showSpan(scoreSpan,`${players[0].getName()}'s score: ${players[0].getScore()} VS ${players[1].getName()}'s score: ${players[1].getScore()}`, 4000);
                         consoleRenderer.showTurnWinner(activePlayer.getName());
                         activePlayer.increaseScore();
                         consoleRenderer.showPlayersScore(gameController.getPlayers());
